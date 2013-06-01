@@ -21,7 +21,9 @@
   #include <boost/mpl/if.hpp>
   #include <boost/mpl/int.hpp>
   #include <boost/type_traits/is_convertible.hpp>
+  #include <boost/multiprecision/cpp_dec_float.hpp>
 
+using namespace boost::multiprecision;
 
   struct pol{};
 
@@ -50,17 +52,14 @@
     tangent_numbers[0U] = T(0U);
     tangent_numbers[1U] = T(1U);
 
-    T power_four(4);
     T power_two(2);
 
     for(boost::int32_t k = 2; k <= m; k++)
     {
-      power_four*=4;
       power_two*=2;
       tangent_numbers[k] = (k - 1) * tangent_numbers[k - 1];
     }
 
-    power_four *= power_four;
     power_two *= power_two;
 
     for(boost::int32_t k = 2; k <= m; k++)
@@ -72,7 +71,7 @@
     }
 
     T x = static_cast<T>(nn);
-    x = x / (power_four - power_two);
+    x = x / (power_two*(power_two-1));
     x *= tangent_numbers[nn / 2];
 
     return (nn % 4 == 0) ? -x : x;
@@ -100,16 +99,13 @@
       }
     }
 
-    T power_four(1);
     T power_two(1);
 
     for(unsigned i = 1; i <= start_index; i++)
     {
-      power_four*=4;
       power_two*=2;
     }
 
-    power_four*=power_four;
     power_two*=power_two;
 
     bn.clear();
@@ -119,10 +115,9 @@
     {
 
       T b((i+start_index)*2);
-      b=b/(power_four-power_two);
+      b=b/(power_two*(power_two-1));
       b*=tangent_numbers[i+start_index];
 
-      power_four*=16;
       power_two*=4;
 
       const bool  b_neg = (static_cast<std::int32_t>((i+start_index) % static_cast<std::int32_t>(2)) == static_cast<std::int32_t>(0));
