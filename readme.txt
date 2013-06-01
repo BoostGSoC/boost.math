@@ -1,11 +1,11 @@
 
 This is a partial Boost.Math area for:
 
-* 2013 GSoC
 * Bernoulli numbers and applications to special functions
+* Developed for the 2013 GSoC
 
 Project Developer: Nikhar Agrawal
 Project Mentor   : Christopher Kormanyos
 
-The candidate files in this project are proposed to be included
-in Boost.Math upon successful completion of the project.
+Upon successful completion of the project, the candidate files
+here are expected to be merged to and/or included in Boost.Math.
