@@ -442,14 +442,14 @@ using namespace boost::multiprecision;
     typedef typename mpl::if_c<
          (std::numeric_limits<T>::max_exponent >= 128)
       && (std::numeric_limits<T>::max_exponent < 1024)
-      && (std::numeric_limits<T>::digits10 <= std::numeric_limits<float>::digits)
+      && (std::numeric_limits<T>::digits10 <= std::numeric_limits<float>::digits10)
       && boost::is_convertible<T, float>::value,
 
       mpl::int_<1>,
 
       typename mpl::if_c<
            (std::numeric_limits<T>::max_exponent >= 1024)
-        && (std::numeric_limits<T>::digits10 <= std::numeric_limits<long double>::digits)
+        && (std::numeric_limits<T>::digits10 <= std::numeric_limits<long double>::digits10)
         && boost::is_convertible<T, long double>::value,
         mpl::int_<2>,
         mpl::int_<3>
