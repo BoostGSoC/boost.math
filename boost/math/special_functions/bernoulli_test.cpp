@@ -1,9 +1,9 @@
 #define BOOST_TEST_MODULE MyTest
 #include <boost/test/included/unit_test.hpp>
 #include <boost/test/output_test_stream.hpp>
-//#include <boost/math/special_functions.hpp>
+#include <boost/math/special_functions.hpp>
 #include <boost/test/floating_point_comparison.hpp>
-#include "bernoulli.hpp"
+
 
 using namespace boost::test_tools;
 
