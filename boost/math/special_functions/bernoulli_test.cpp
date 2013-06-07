@@ -1,104 +1,48 @@
 #define BOOST_TEST_MODULE MyTest
 #include <boost/test/included/unit_test.hpp>
 #include <boost/test/output_test_stream.hpp>
-#include <boost/math/special_functions.hpp>
+//#include <boost/math/special_functions.hpp>
+#include <boost/test/floating_point_comparison.hpp>
+#include "bernoulli.hpp"
 
 using namespace boost::test_tools;
 
-BOOST_AUTO_TEST_CASE( float_test )
+template <class RealType>
+void generic_test_built_in(RealType)
 {
-  const float tolerance = boost::math::tools::epsilon<float>();
+  RealType tolerance = (std::max)
+    (boost::math::tools::epsilon<RealType>(),
+    static_cast<RealType>(std::numeric_limits<double>::epsilon()));
+  tolerance *= 100;
 
-  BOOST_CHECK_CLOSE_FRACTION(boost::math::bernoulli_b2n<float>(12),
-                             -86580.3F,
+  std::cout << "Tolerance for type " << typeid(RealType).name()  << " is "
+    << std::setprecision(3) << tolerance  << " (or " << tolerance * 100 << "%)." << std::endl;
+
+  BOOST_CHECK_CLOSE_FRACTION(boost::math::bernoulli_b2n<RealType>(12),
+                             static_cast<RealType>(-86580.253113553113553113553113553113553114L),
                              tolerance);
 
-  std::vector<float> bn(5);
-  std::vector<float>::iterator it=bn.begin();
+  typename std::vector<RealType> bn(5);
+  typename std::vector<RealType>::iterator it=bn.begin();
 
-  //calculate series
-  boost::math::bernoulli_b2n<float>(20,5,it);
+  boost::math::bernoulli_b2n<RealType>(20,5,it);
 
-  output_test_stream output;
+  BOOST_CHECK_CLOSE_FRACTION(bn[0],static_cast<RealType>(-1.9296579341940068148632668144863266814486e16L),tolerance);
 
-  output<<std::setprecision(std::numeric_limits<float>::digits10)<<bn[0];
-  BOOST_CHECK(output.is_equal("-1.92966e+16"));
+  BOOST_CHECK_CLOSE_FRACTION(bn[1],static_cast<RealType>(8.4169304757368261500055370985603543743079e17L),tolerance);
 
-  output<<std::setprecision(std::numeric_limits<float>::digits10)<<bn[1];
-  BOOST_CHECK(output.is_equal("8.41693e+17"));
+  BOOST_CHECK_CLOSE_FRACTION(bn[2],static_cast<RealType>(-4.0338071854059455413076811594202898550725e19L),tolerance);
 
-  output<<std::setprecision(std::numeric_limits<float>::digits10)<<bn[2];
-  BOOST_CHECK(output.is_equal("-4.03381e+19"));
+  BOOST_CHECK_CLOSE_FRACTION(bn[3],static_cast<RealType>(2.1150748638081991605601453900709219858156e21L),tolerance);
 
-  output<<std::setprecision(std::numeric_limits<float>::digits10)<<bn[3];
-  BOOST_CHECK(output.is_equal("2.11507e+21"));
-
-  output<<std::setprecision(std::numeric_limits<float>::digits10)<<bn[4];
-  BOOST_CHECK(output.is_equal("-1.20866e+23"));
+  BOOST_CHECK_CLOSE_FRACTION(bn[4],static_cast<RealType>(-1.2086626522296525934602731193708252531782e23L),tolerance);
 }
 
-BOOST_AUTO_TEST_CASE( double_test )
+BOOST_AUTO_TEST_CASE(generic_built_in_test)
 {
-  output_test_stream output;
-  output<<std::setprecision(std::numeric_limits<double>::digits10)<<boost::math::bernoulli_b2n<double>(12);
-  BOOST_CHECK(output.is_equal("-86580.2531135531"));
-
-  //no rounding error here as opposed to float
-  output<<std::setprecision(std::numeric_limits<double>::digits10)<<boost::math::bernoulli_b2n<double>(5);
-  BOOST_CHECK(output.is_equal("0.0757575757575758"));
-
-  std::vector<double> bn(5);
-  std::vector<double>::iterator it=bn.begin();
-
-  //calculate series
-  boost::math::bernoulli_b2n<double>(100,5,it);
-
-  output<<std::setprecision(std::numeric_limits<double>::digits10)<<bn[0];
-  BOOST_CHECK(output.is_equal("-3.64707726451914e+215"));
-
-  output<<std::setprecision(std::numeric_limits<double>::digits10)<<bn[1];
-  BOOST_CHECK(output.is_equal("3.75087554364544e+218"));
-
-  output<<std::setprecision(std::numeric_limits<double>::digits10)<<bn[2];
-  BOOST_CHECK(output.is_equal("-3.9345867296439e+221"));
-
-  output<<std::setprecision(std::numeric_limits<double>::digits10)<<bn[3];
-  BOOST_CHECK(output.is_equal("4.20882111481901e+224"));
-
-  output<<std::setprecision(std::numeric_limits<double>::digits10)<<bn[4];
-  BOOST_CHECK(output.is_equal("-4.59022962206179e+227"));
-}
-
-BOOST_AUTO_TEST_CASE( long_double_test )
-{
-  output_test_stream output;
-  output<<std::setprecision(std::numeric_limits<long double>::digits10)<<boost::math::bernoulli_b2n<long double>(12);
-  BOOST_CHECK(output.is_equal("-86580.2531135531136"));
-
-  //no error rounding here either. Problem only in float
-  output<<std::setprecision(std::numeric_limits<long double>::digits10)<<boost::math::bernoulli_b2n<long double>(6);
-  BOOST_CHECK(output.is_equal("-0.253113553113553114"));
-
-  std::vector<long double> bn(5);
-  std::vector<long double>::iterator it=bn.begin();
-
-  //calculate series
-  boost::math::bernoulli_b2n<long double>(100,5,it);
-
-  output<<std::setprecision(std::numeric_limits<long double>::digits10)<<bn[0];
-  BOOST_CHECK(output.is_equal("-3.64707726451913544e+215"));
-
-  output<<std::setprecision(std::numeric_limits<long double>::digits10)<<bn[1];
-  BOOST_CHECK(output.is_equal("3.75087554364544091e+218"));
-
-  output<<std::setprecision(std::numeric_limits<long double>::digits10)<<bn[2];
-  BOOST_CHECK(output.is_equal("-3.93458672964390283e+221"));
-
-  output<<std::setprecision(std::numeric_limits<long double>::digits10)<<bn[3];
-  BOOST_CHECK(output.is_equal("4.2088211148190082e+224"));
-
-  output<<std::setprecision(std::numeric_limits<long double>::digits10)<<bn[4];
-  BOOST_CHECK(output.is_equal("-4.59022962206179187e+227"));
+    generic_test_built_in(0.0F);
+    generic_test_built_in(0.0);
+    generic_test_built_in(0.0L);
 }
 
 BOOST_AUTO_TEST_CASE( cpp_dec_float_50_test )
