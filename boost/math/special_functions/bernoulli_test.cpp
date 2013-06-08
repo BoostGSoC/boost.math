@@ -152,9 +152,10 @@ int main(int, char**)
 #include <boost/math/special_functions.hpp>
 #include <boost/test/floating_point_comparison.hpp>
 #include <boost/multiprecision/cpp_dec_float.hpp>
-
+#include "bernoulli.hpp"
 
 using namespace boost::test_tools;
+typedef boost::multiprecision::number<cpp_dec_float<50>, boost::multiprecision::et_off> cpp_dec_float_50_et_off;
 
 template <class RealType>
 void generic_test_built_in()
@@ -188,9 +189,14 @@ void generic_test_built_in()
 }
 
 template <>
-void generic_test_built_in<boost::multiprecision::cpp_dec_float_50>()
+void generic_test_built_in<cpp_dec_float_50_et_off>()
 {
   std::cout << "Test cpp_dec_float<50>" << std::endl;
+
+  cpp_dec_float_50_et_off tolerance=boost::math::tools::epsilon<cpp_dec_float_50_et_off>() * 100;
+
+   std::cout << "Tolerance is "
+    << std::setprecision(3) << tolerance  << " (or " << tolerance * 100 << "%)." << std::endl;
 
   output_test_stream output;
 
@@ -198,11 +204,27 @@ void generic_test_built_in<boost::multiprecision::cpp_dec_float_50>()
   // TBD: Weird compiler error. Chris should ask John.
 
   //should call unchecked bernoulli
-  output << std::setprecision(std::numeric_limits<boost::multiprecision::cpp_dec_float_50>::digits10 - 2)
-         << boost::math::bernoulli_b2n<boost::multiprecision::cpp_dec_float_50>(12);
+
+
+//*** the following test fails
+  BOOST_CHECK_CLOSE_FRACTION(boost::math::bernoulli_b2n<cpp_dec_float_50_et_off>(12),
+                             static_cast<cpp_dec_float_50_et_off>(-86580.2531135531135531135531135531135531135531136),
+                             tolerance);
+
+  output << std::setprecision(std::numeric_limits<cpp_dec_float_50_et_off>::digits10 - 2)
+         << boost::math::bernoulli_b2n<cpp_dec_float_50_et_off>(12);
   BOOST_CHECK(output.is_equal("-86580.2531135531135531135531135531135531135531136"));
 
   //should be calculated by tangent numbers algorithm
+
+
+//*** compiler returns a warning warning: floating constant exceeds range of ‘double’
+//*** therefore not converting any more tests to close fraction for the moment
+  cpp_dec_float_50_et_off x(-5.31870446941552203648291374376708554520936600522e+1769);
+  BOOST_CHECK_CLOSE_FRACTION(boost::math::bernoulli_b2n<cpp_dec_float_50_et_off>(500),
+                             x,
+                             tolerance);
+
   output << std::setprecision(std::numeric_limits<boost::multiprecision::cpp_dec_float_50>::digits10 - 2)
          << boost::math::bernoulli_b2n<boost::multiprecision::cpp_dec_float_50>(500);
   BOOST_CHECK(output.is_equal("-5.31870446941552203648291374376708554520936600522e+1769"));
@@ -252,7 +274,7 @@ void generic_test_built_in<boost::multiprecision::cpp_dec_float_50>()
   BOOST_CHECK(output.is_equal("-1.65845111541362169158237133743199123014949626147e+88"));
 }
 
-template <>
+/*template <>
 void generic_test_built_in<boost::multiprecision::number<cpp_dec_float<9> > >()
 {
   std::cout << "Test cpp_dec_float<9>" << std::endl;
@@ -272,13 +294,13 @@ void generic_test_built_in<boost::multiprecision::number<cpp_dec_float<9> > >()
          << boost::math::bernoulli_b2n<boost::multiprecision::number<cpp_dec_float<9> > >(500);
   BOOST_CHECK(output.is_equal("-5.318704e+1769"));
 
-}
+}*/
 
 BOOST_AUTO_TEST_CASE(generic_built_in_test)
 {
   generic_test_built_in<float>();
   generic_test_built_in<double>();
   generic_test_built_in<long double>();
-  generic_test_built_in<boost::multiprecision::cpp_dec_float_50>();
-  generic_test_built_in<boost::multiprecision::number<cpp_dec_float<9> > >();
+  generic_test_built_in<cpp_dec_float_50_et_off>();
+  generic_test_built_in<boost::multiprecision::number<cpp_dec_float<9>, boost::multiprecision::et_off> >();
 }
