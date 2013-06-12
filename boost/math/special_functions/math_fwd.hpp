@@ -548,6 +548,25 @@ namespace boost
    template<typename T, class Policy>
    typename tools::promote_args<T>::type atanh(T x, const Policy&);
 
+   // Bernoulli functions:
+
+   template <class T, class Policy>
+   T bernoulli_b2n(const int i, const Policy &pol);
+
+   template <class T>
+   T bernoulli_b2n(const int i);
+
+   template <class T, class OutputIterator, class Policy>
+   OutputIterator bernoulli_b2n(int start_index,
+                                       unsigned number_of_bernoullis_b2n,
+                                       OutputIterator out_it,
+                                       const Policy& pol)   ;
+
+   template <class T, class OutputIterator>
+   OutputIterator bernoulli_b2n(int start_index,
+                                      unsigned number_of_bernoullis_b2n,
+                                      OutputIterator out_it);
+
    namespace detail{
 
       typedef mpl::int_<0> bessel_no_int_tag;      // No integer optimisation possible.
@@ -1189,6 +1208,23 @@ namespace boost
 \
    template<typename T>\
    inline typename boost::math::tools::promote_args<T>::type atanh(const T x){ return boost::math::atanh(x, Policy()); }\
+\
+   template <class T, class Policy>\
+   inline T bernoulli_b2n(const int i, const Policy &pol);\
+\
+   template <class T>\
+   inline T bernoulli_b2n(const int i);\
+\
+   template <class T, class OutputIterator, class Policy>\
+   inline OutputIterator bernoulli_b2n(int start_index,\
+                                       unsigned number_of_bernoullis_b2n,\
+                                       OutputIterator out_it,\
+                                       const Policy& pol)   ;\
+\
+   template <class T, class OutputIterator>\
+   inline OutputIterator bernoulli_b2n(int start_index,\
+                                      unsigned number_of_bernoullis_b2n,\
+                                      OutputIterator out_it);\
 \
    template <class T1, class T2>\
    inline typename boost::math::detail::bessel_traits<T1, T2, Policy >::result_type cyl_bessel_j(T1 v, T2 x)\
