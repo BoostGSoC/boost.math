@@ -24,6 +24,7 @@
   #include <boost/multiprecision/cpp_dec_float.hpp>
 
 using namespace boost::multiprecision;
+using std::size_t;
 
   struct pol{};
 
@@ -37,7 +38,7 @@ using namespace boost::multiprecision;
 
 
   template <class T>
-  T tangent_numbers(const unsigned nn)
+  T tangent_numbers(const int nn)
   {
     if(nn % 2)
     {
@@ -45,7 +46,7 @@ using namespace boost::multiprecision;
       return x;
     }
 
-    const std::int32_t m = nn / 2;
+    const boost::int32_t m = nn / 2;
 
     std::vector<T> tangent_numbers(m + 1);
 
@@ -54,7 +55,7 @@ using namespace boost::multiprecision;
 
     T power_two(2);
 
-    for(boost::int32_t k = 2; k <= m; k++)
+    for(size_t k = 2; k <= m; k++)
     {
       power_two*=2;
       tangent_numbers[k] = (k - 1) * tangent_numbers[k - 1];
@@ -62,9 +63,9 @@ using namespace boost::multiprecision;
 
     power_two *= power_two;
 
-    for(boost::int32_t k = 2; k <= m; k++)
+    for(size_t k = 2; k <= m; k++)
     {
-      for(boost::int32_t j = k; j <= m; j++)
+      for(size_t j = k; j <= m; j++)
       {
         tangent_numbers[j] = (tangent_numbers[j - 1] * (j - k)) + (tangent_numbers[j] * (j - k + 2));
       }
@@ -78,22 +79,22 @@ using namespace boost::multiprecision;
   }
 
   template <class T>
-  void tangent_numbers_series(std::vector<T>& bn, const unsigned start_index, const unsigned number_of_bernoulis_bn)
+  void tangent_numbers_series(std::vector<T>& bn, const int start_index, const unsigned number_of_bernoullis_bn)
   {
-    unsigned m = start_index + number_of_bernoulis_bn;
+    size_t m = start_index + number_of_bernoullis_bn;
     std::vector<T> tangent_numbers(m+1);
 
     tangent_numbers[0U] = T(0U);
     tangent_numbers[1U] = T(1u);
 
-    for(boost::uint32_t k = 2; k <= m; k++)
+    for(size_t k = 2; k <= m; k++)
     {
       tangent_numbers[k] = (k - 1) * tangent_numbers[k - 1];
     }
 
-    for(boost::uint32_t k = 2; k <= m; k++)
+    for(size_t k = 2; k <= m; k++)
     {
-      for(boost::uint32_t j = k; j <= m; j++)
+      for(size_t j = k; j <= m; j++)
       {
         tangent_numbers[j] = (tangent_numbers[j - 1] * (j - k)) + (tangent_numbers[j] * (j - k + 2));
       }
@@ -109,9 +110,9 @@ using namespace boost::multiprecision;
     power_two*=power_two;
 
     bn.clear();
-    bn.resize(number_of_bernoulis_bn);
+    bn.resize(number_of_bernoullis_bn);
 
-    for(std::uint32_t i = 0; i < number_of_bernoulis_bn; i++)
+    for(size_t i = 0; i < number_of_bernoullis_bn; i++)
     {
 
       T b((i+start_index)*2);
@@ -120,7 +121,7 @@ using namespace boost::multiprecision;
 
       power_two*=4;
 
-      const bool  b_neg = (static_cast<std::int32_t>((i+start_index) % static_cast<std::int32_t>(2)) == static_cast<std::int32_t>(0));
+      const bool  b_neg = (static_cast<boost::int32_t>((i+start_index) % static_cast<boost::int32_t>(2)) == static_cast<boost::int32_t>(0));
 
       bn[i] = ((!b_neg) ? b : -b);
 
@@ -128,8 +129,13 @@ using namespace boost::multiprecision;
   }
 
   template <class T, class Policy>
-  T bernoulli_number_imp(const unsigned n, const Policy &pol)
+  T bernoulli_number_imp(const int n, const Policy &pol)
   {
+    if(n<0)
+    {
+        //TBD : How to throw exception
+    }
+
     if((n/2)<=max_bernoulli_index<T>::value)
     {
       return unchecked_bernoulli_b2n<T>(n/2);
@@ -141,14 +147,14 @@ using namespace boost::multiprecision;
   }
 
   template <class T, class OutputIterator, class Policy>
-  inline OutputIterator bernoulli_series_imp(unsigned start_index,
-                                      unsigned number_of_bernoulis_bn,
+  inline OutputIterator bernoulli_series_imp(int start_index,
+                                      unsigned number_of_bernoullis_bn,
                                       OutputIterator out_it,
                                       const Policy& pol)
   {
-    if((start_index + number_of_bernoulis_bn) < max_bernoulli_index<T>::value)
+    if((start_index + number_of_bernoullis_bn) < max_bernoulli_index<T>::value)
     {
-      OutputIterator last= out_it + number_of_bernoulis_bn;
+      OutputIterator last= out_it + number_of_bernoullis_bn;
 
       while(out_it!=last)
       {
@@ -163,11 +169,11 @@ using namespace boost::multiprecision;
 
     std::vector<T> bn;
 
-    tangent_numbers_series(bn, start_index , number_of_bernoulis_bn);
+    tangent_numbers_series(bn, start_index , number_of_bernoullis_bn);
 
-    OutputIterator last = out_it + number_of_bernoulis_bn;
+    OutputIterator last = out_it + number_of_bernoullis_bn;
 
-    unsigned i=0;
+    size_t i=0;
     while(out_it != last)
     {
       *out_it=bn[i];
