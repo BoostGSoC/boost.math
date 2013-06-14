@@ -8,7 +8,7 @@
 
 #include <boost/math/special_functions.hpp>
 #include <boost/multiprecision/cpp_dec_float.hpp>
-
+#include "bernoulli.hpp"
 #define BOOST_TEST_MAIN
 #include <boost/test/included/unit_test.hpp> // Boost.Test
 #include <boost/test/floating_point_comparison.hpp>
@@ -55,6 +55,9 @@ void generic_bernoulli_test<cpp_dec_float_50_noet>()
   std::cout << "Tolerance for type " << typeid(cpp_dec_float_50_noet).name()  << " is "
     << std::setprecision(3) << tolerance  << " (or " << tolerance * 100 << "%)." << std::endl;
 
+  // test for negative argument
+  BOOST_CHECK_THROW(boost::math::bernoulli_b2n<cpp_dec_float_50_noet>(-1), std::domain_error);
+
   //should call unchecked bernoulli
   BOOST_CHECK_CLOSE_FRACTION(boost::math::bernoulli_b2n<cpp_dec_float_50_noet>(12),
                              cpp_dec_float_50_noet("-86580.253113553113553113553113553113553113553113553113553113553113553113553113553113553113553113553113553113553"),
@@ -67,6 +70,9 @@ void generic_bernoulli_test<cpp_dec_float_50_noet>()
 
   std::vector<cpp_dec_float_50_noet> bn(5);
   std::vector<cpp_dec_float_50_noet>::iterator it = bn.begin();
+
+  // test for negative argument
+  BOOST_CHECK_THROW(boost::math::bernoulli_b2n<cpp_dec_float_50_noet>(-1,5,it), std::domain_error);
 
   //series retrieved from unchecked bernoulli
   boost::math::bernoulli_b2n<cpp_dec_float_50_noet>(10, 5, it);

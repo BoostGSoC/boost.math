@@ -133,7 +133,7 @@ using std::size_t;
   {
     if(n<0)
     {
-        //TBD : How to throw exception
+       policies::raise_domain_error<T>("boost::math::bernoulli<%1%>", "Index should be >= 0 but got %1%", n/2, Policy());
     }
 
     if((n/2)<=max_bernoulli_index<T>::value)
@@ -152,6 +152,10 @@ using std::size_t;
                                       OutputIterator out_it,
                                       const Policy& pol)
   {
+    if(start_index<0)
+    {
+       policies::raise_domain_error<T>("boost::math::bernoulli<%1%>", "Start Index should be >= 0 but got %1%", start_index, Policy());
+    }
     if((start_index + number_of_bernoullis_bn) < max_bernoulli_index<T>::value)
     {
       OutputIterator last= out_it + number_of_bernoullis_bn;

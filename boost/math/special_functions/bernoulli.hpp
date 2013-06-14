@@ -20,6 +20,8 @@
   template <class T, class Policy>
   inline T bernoulli_b2n(const int i, const Policy &pol)
   {
+    if(i<0)
+      policies::raise_domain_error<T>("boost::math::bernoulli<%1%>", "Index should be >= 0 but got %1%", i, pol);
     const int i_2 = 2 * i;
 
     return boost::math::detail::bernoulli_number_imp<T,Policy>(i_2, pol);
