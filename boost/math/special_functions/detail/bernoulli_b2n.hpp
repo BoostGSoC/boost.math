@@ -102,7 +102,7 @@ using std::size_t;
 
     T power_two(1);
 
-    for(unsigned i = 1; i <= start_index; i++)
+    for(int i = 1; i <= start_index; i++)
     {
       power_two*=2;
     }
