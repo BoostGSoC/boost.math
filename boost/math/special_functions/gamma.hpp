@@ -144,31 +144,18 @@ const T& bernoulli_table(const boost::uint32_t n)
 template <class T, class Policy>
 T gamma_imp_bernoulli(T x, const Policy& pol)
 {
-  // TBD: small argument approximation?
-  // TBD: NaN for zero or very near zero.
-  // TBD: +infinity for negative integers or very close thereto.
-
-  if(!boost::math::isfinite(x))
-  {
-    return x;
-  }
-
   const bool b_neg = (x < 0);
 
   // Make a local, unsigned copy of the input argument.
 
   T xx((!b_neg) ? x : -x);
 
-  // Check if the argument should be scaled up for the Bernoulli series expansion.
-  static const double digit_scale_of_argument = static_cast<double>(std::numeric_limits<T>::digits10 * 1.7);
-
-  static const boost::int32_t min_arg_n = static_cast<boost::int32_t>(digit_scale_of_argument);
-  static const T   min_arg_x = T(min_arg_n);
-  std::cout<<static_cast<boost::int32_t>(xx)<<std::endl;
-  const boost::int32_t n_recur = ((xx < min_arg_x) ? static_cast<boost::int32_t>((min_arg_n - static_cast<boost::int32_t>(xx)/*xx.template convert_to<boost::int32_t>()*/) + 1)
-                                                 : static_cast<boost::int32_t>(0));
-
   // Scale the argument up and use downward recursion later for the final result.
+
+  static const T min_arg_for_recursion(float(std::numeric_limits<T>::digits10 * 1.7F));
+
+  const T n_recur = ((xx < min_arg_for_recursion) ? (floor(min_arg_for_recursion - xx) + 1)
+                                                        : T(0));
   if(n_recur != static_cast<std::int32_t>(0))
   {
     xx += n_recur;
