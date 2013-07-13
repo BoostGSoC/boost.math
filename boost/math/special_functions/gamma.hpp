@@ -150,11 +150,14 @@ T gamma_imp_bernoulli(T x, const Policy& pol)
 
   T xx((!b_neg) ? x : -x);
 
+// The value of xx will be changed below, so we want an original version
+  T original_x=xx;
+
   // Scale the argument up and use downward recursion later for the final result.
 
   static const T min_arg_for_recursion(float(std::numeric_limits<T>::digits10 * 1.7F));
 
-  const T n_recur = ((xx < min_arg_for_recursion) ? (floor(min_arg_for_recursion - xx) + 1)
+  const T n_recur = ((xx < min_arg_for_recursion) ? (boost::math::lltrunc(min_arg_for_recursion - xx) + 1)
                                                         : T(0));
   if(n_recur != static_cast<std::int32_t>(0))
   {
@@ -182,14 +185,15 @@ T gamma_imp_bernoulli(T x, const Policy& pol)
   T gamma_value = exp(log_gamma_value);
 
   // Rescale the result using downward recursion if necessary.
-  for(boost::int32_t k = static_cast<boost::int32_t>(0); k < n_recur; k++)
+  for(boost::int32_t k = static_cast<boost::int32_t>(1); k < n_recur; k++)
   {
-    xx -= 1;
-    gamma_value /= xx;
+    gamma_value /= original_x + k;
   }
 
+  gamma_value/= original_x;
+
   // Return the result, accounting for possible negative arguments.
-  return ((!b_neg) ? gamma_value : -boost::math::constants::pi<T>() / (xx * gamma_value * sin(boost::math::constants::pi<T>() * xx)));
+  return ((!b_neg) ? gamma_value : -boost::math::constants::pi<T>() / (original_x * gamma_value * sin(boost::math::constants::pi<T>() * original_x)));
 }
 
 template <class T, class Policy, class Lanczos>
