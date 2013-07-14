@@ -29,6 +29,7 @@
 #include <boost/math/special_functions/detail/igamma_large.hpp>
 #include <boost/math/special_functions/detail/unchecked_factorial.hpp>
 #include <boost/math/special_functions/detail/lgamma_small.hpp>
+#include <boost/math/special_functions/bernoulli.hpp>
 #include <boost/type_traits/is_convertible.hpp>
 #include <boost/assert.hpp>
 #include <boost/mpl/greater.hpp>
@@ -157,9 +158,8 @@ T gamma_imp_bernoulli(T x, const Policy& pol)
 
   static const T min_arg_for_recursion(float(std::numeric_limits<T>::digits10 * 1.7F));
 
-  const T n_recur = ((xx < min_arg_for_recursion) ? (boost::math::lltrunc(min_arg_for_recursion - xx) + 1)
-                                                        : T(0));
-  if(n_recur != static_cast<std::int32_t>(0))
+  const int n_recur = ((xx < min_arg_for_recursion) ? (boost::math::itrunc(min_arg_for_recursion - xx) + 1) : 0);
+  if(n_recur != 0)
   {
     xx += n_recur;
   }
@@ -185,7 +185,7 @@ T gamma_imp_bernoulli(T x, const Policy& pol)
   T gamma_value = exp(log_gamma_value);
 
   // Rescale the result using downward recursion if necessary.
-  for(boost::int32_t k = static_cast<boost::int32_t>(1); k < n_recur; k++)
+  for(int k = 1; k < n_recur; k++)
   {
     gamma_value /= original_x + k;
   }
@@ -428,6 +428,8 @@ inline T lower_gamma_series(T a, T z, const Policy& pol, T init_value = 0)
 template <class T, class Policy>
 T gamma_imp(T z, const Policy& pol, const lanczos::undefined_lanczos& l)
 {
+   return gamma_imp_bernoulli(z, pol);
+   /*
    static const char* function = "boost::math::tgamma<%1%>(%1%)";
    BOOST_MATH_STD_USING
    if((z <= 0) && (floor(z) == z))
@@ -474,6 +476,7 @@ T gamma_imp(T z, const Policy& pol, const lanczos::undefined_lanczos& l)
       return sum * prefix;
    }
    return prefix;
+   */
 }
 
 template <class T, class Policy>
