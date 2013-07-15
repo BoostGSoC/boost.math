@@ -185,13 +185,18 @@ T gamma_imp_bernoulli(T x, const Policy& pol)
   T gamma_value = exp(log_gamma_value);
 
   // Rescale the result using downward recursion if necessary.
-  for(boost::int32_t k = static_cast<boost::int32_t>(1); k < n_recur; k++)
-  {
-    gamma_value /= original_x + k;
+  if(n_recur)
+  {	 
+	  // We need to divide by every x+k in the range [x, x+n_recur), we save
+	  // division by x till last, as we may have x < 1 which could cause
+	  // spurious overflow if we divided by that first.
+	  for(boost::int32_t k = static_cast<boost::int32_t>(1); k < n_recur; k++)
+	  {	
+		  gamma_value /= (original_x + k);
+	  }	
+
+	  gamma_value/= original_x;
   }
-
-  gamma_value/= original_x;
-
   // Return the result, accounting for possible negative arguments.
   return ((!b_neg) ? gamma_value : -boost::math::constants::pi<T>() / (original_x * gamma_value * sin(boost::math::constants::pi<T>() * original_x)));
 }
