@@ -144,11 +144,25 @@ const T& bernoulli_table(const boost::uint32_t n)
 template <class T, class Policy>
 T gamma_imp_bernoulli(T x, const Policy& pol)
 {
-  const bool b_neg = (x < 0);
+  T result = 1;
+
+  //the following handling of negative arguments modelled after the handling in function
+ //T gamma_imp(T z, const Policy& pol, const Lanczos& l)
+  if(x<=0)
+  {
+      /*static const char* function = "boost::math::tgamma<%1%>(%1%)";
+      if(floor(x) == x)
+         return policies::raise_pole_error<T>(function, "Evaluation of tgamma at a negative integer %1%.", x, pol);*/
+      while(x<0)
+      {
+		result/=x;
+		x+=1;
+      }
+  }	  
 
   // Make a local, unsigned copy of the input argument.
 
-  T xx((!b_neg) ? x : -x);
+  T xx(x);
 
 // The value of xx will be changed below, so we want an original version
   T original_x=xx;
@@ -185,15 +199,21 @@ T gamma_imp_bernoulli(T x, const Policy& pol)
   T gamma_value = exp(log_gamma_value);
 
   // Rescale the result using downward recursion if necessary.
-  for(boost::int32_t k = static_cast<boost::int32_t>(1); k < n_recur; k++)
-  {
-    gamma_value /= original_x + k;
+  if(n_recur)
+  {	  
+	  // We need to divide by every x+k in the range [x, x+n_recur), we save
+	  // division by x till last, as we may have x < 1 which could cause
+	  // spurious overflow if we divided by that first.
+	  for(boost::int32_t k = static_cast<boost::int32_t>(1); k < n_recur; k++)
+	  {	
+		  gamma_value /= (original_x + k);
+	  }	
+
+	  gamma_value/= original_x;
   }
-
-  gamma_value/= original_x;
-
   // Return the result, accounting for possible negative arguments.
-  return ((!b_neg) ? gamma_value : -boost::math::constants::pi<T>() / (original_x * gamma_value * sin(boost::math::constants::pi<T>() * original_x)));
+  //return ((!b_neg) ? gamma_value : -boost::math::constants::pi<T>() / (original_x * gamma_value * sin(boost::math::constants::pi<T>() * original_x)));
+ return result*gamma_value;
 }
 
 template <class T, class Policy, class Lanczos>
