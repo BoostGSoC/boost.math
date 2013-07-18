@@ -223,7 +223,12 @@ T lgamma_imp_bernoulli(T z, const Policy& pol)
   static const T min_arg_for_recursion(float(std::numeric_limits<T>::digits10 * 1.7F));
 
   if(z<min_arg_for_recursion)
-	return log(gamma_imp_bernoulli(z,pol));
+  {
+	T temp=gamma_imp_bernoulli(z,pol);
+	if(temp < 0)
+		temp=-1*temp;
+	return log(temp);
+  }
 
   T xx(z);
 
