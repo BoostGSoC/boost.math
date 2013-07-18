@@ -151,15 +151,15 @@ T gamma_imp_bernoulli(T x, const Policy& pol)
  //T gamma_imp(T z, const Policy& pol, const Lanczos& l)
   if(x<=0)
   {
-      /*static const char* function = "boost::math::tgamma<%1%>(%1%)";
+      static const char* function = "boost::math::tgamma<%1%>(%1%)";
       if(floor(x) == x)
-         return policies::raise_pole_error<T>(function, "Evaluation of tgamma at a negative integer %1%.", x, pol);*/
+         return policies::raise_pole_error<T>(function, "Evaluation of tgamma at a negative integer %1%.", x, pol);
       while(x<0)
       {
 		result/=x;
 		x+=1;
       }
-  }	  
+  }
 
   // Make a local, unsigned copy of the input argument.
 
@@ -201,20 +201,51 @@ T gamma_imp_bernoulli(T x, const Policy& pol)
 
   // Rescale the result using downward recursion if necessary.
   if(n_recur)
-  {	  
+  {
 	  // We need to divide by every x+k in the range [x, x+n_recur), we save
 	  // division by x till last, as we may have x < 1 which could cause
 	  // spurious overflow if we divided by that first.
 	  for(boost::int32_t k = static_cast<boost::int32_t>(1); k < n_recur; k++)
-	  {	
+	  {
 		  gamma_value /= (original_x + k);
-	  }	
+	  }
 
 	  gamma_value/= original_x;
   }
   // Return the result, accounting for possible negative arguments.
   //return ((!b_neg) ? gamma_value : -boost::math::constants::pi<T>() / (original_x * gamma_value * sin(boost::math::constants::pi<T>() * original_x)));
  return result*gamma_value;
+}
+
+template<class T, class Policy>
+T lgamma_imp_bernoulli(T z, const Policy& pol)
+{
+  static const T min_arg_for_recursion(float(std::numeric_limits<T>::digits10 * 1.7F));
+
+  if(z<min_arg_for_recursion)
+	return log(gamma_imp_bernoulli(z,pol));
+
+  T xx(z);
+
+        T one_over_x_pow_two_n_minus_one = 1 / xx;
+  const T one_over_x2                    = one_over_x_pow_two_n_minus_one * one_over_x_pow_two_n_minus_one;
+        T sum                            = (bernoulli_table<T>(1) / static_cast<boost::int32_t>(2)) * one_over_x_pow_two_n_minus_one;
+
+  // Perform the Bernoulli series expansion of Stirling's approximation.
+  for(boost::int32_t n2 = static_cast<boost::int32_t>(4); n2 < static_cast<boost::int32_t>(highest_bernoulli_index<T>()); n2 += static_cast<boost::int32_t>(2))
+  {
+    one_over_x_pow_two_n_minus_one *= one_over_x2;
+
+    const T term = (bernoulli_table<T>(static_cast<boost::uint32_t>(n2 / 2)) * one_over_x_pow_two_n_minus_one) / static_cast<boost::int32_t>(n2 * (n2 - static_cast<boost::int32_t>(1)));
+
+    sum += term;
+  }
+
+  static const T half_ln_two_pi = log(boost::math::constants::two_pi<T>()) / static_cast<boost::int32_t>(2);
+
+  const T log_gamma_value = ((((xx - boost::math::constants::half<T>()) * log(xx)) - xx) + half_ln_two_pi) + sum;
+
+  return log_gamma_value;
 }
 
 template <class T, class Policy, class Lanczos>
@@ -502,7 +533,8 @@ T gamma_imp(T z, const Policy& pol, const lanczos::undefined_lanczos& l)
 template <class T, class Policy>
 T lgamma_imp(T z, const Policy& pol, const lanczos::undefined_lanczos& l, int*sign)
 {
-   BOOST_MATH_STD_USING
+  return lgamma_imp_bernoulli(z,pol);
+  /* BOOST_MATH_STD_USING
 
    static const char* function = "boost::math::lgamma<%1%>(%1%)";
    T result = 0;
@@ -533,7 +565,7 @@ T lgamma_imp(T z, const Policy& pol, const lanczos::undefined_lanczos& l, int*si
    }
    if(sign)
       *sign = sresult;
-   return result;
+   return result;*/
 }
 //
 // This helper calculates tgamma(dz+1)-1 without cancellation errors,
