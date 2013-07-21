@@ -130,13 +130,15 @@ template<class T>
 const T& bernoulli_table(const boost::uint32_t n)
 {
    static std::vector<T> bernoulli_b2n_data;
+
    std::size_t previous_size=bernoulli_b2n_data.size();
+
    if(highest_bernoulli_index<T>() > previous_size)
    {
        bernoulli_b2n_data.resize(highest_bernoulli_index<T>());
-       boost::math::bernoulli_b2n<T>(previous_size,
-                                             highest_bernoulli_index<T>() - previous_size,
-                                             bernoulli_b2n_data.begin() + previous_size);
+       boost::math::bernoulli_b2n<T>(int(previous_size),
+                                     unsigned(highest_bernoulli_index<T>() - previous_size),
+                                     bernoulli_b2n_data.begin() + previous_size);
    }
 
    return ((n < bernoulli_b2n_data.size()) ? bernoulli_b2n_data[n] : zero<T>());
