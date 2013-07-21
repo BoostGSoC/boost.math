@@ -4,6 +4,7 @@
 //  LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 #define BOOST_TEST_MAIN
+#define BOOST_MATH_OVERFLOW_ERROR_POLICY ignore_error
 
 #include <boost/test/unit_test.hpp>
 #include <boost/math/concepts/real_concept.hpp>
@@ -143,6 +144,7 @@ BOOST_AUTO_TEST_CASE( test_main )
    test<long double>();
    test<boost::math::concepts::real_concept>();
 }
+
 
 
 
