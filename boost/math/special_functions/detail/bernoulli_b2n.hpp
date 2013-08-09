@@ -138,11 +138,14 @@ using std::size_t;
 
     if((n/2)<=max_bernoulli_index<T>::value)
     {
-      return unchecked_bernoulli_b2n<T>(n/2);
+	    return unchecked_bernoulli_b2n<T>(n/2);
     }
     else
     {
-      return tangent_numbers<T>(n);
+      T x=tangent_numbers<T>(n);
+      if(x!=x)
+      policies::raise_domain_error<T>("boost::math::bernoulli<%1%>", "Index should be >= 0 but got %1%", n, pol);
+      return x;
     }
   }
 
@@ -156,7 +159,7 @@ using std::size_t;
     {
        policies::raise_domain_error<T>("boost::math::bernoulli<%1%>", "Start Index should be >= 0 but got %1%", start_index, Policy());
     }
-    if((start_index + number_of_bernoullis_bn) < max_bernoulli_index<T>::value)
+    if((start_index + number_of_bernoullis_bn - 1) <= max_bernoulli_index<T>::value)
     {
       OutputIterator last= out_it + number_of_bernoullis_bn;
 
@@ -170,7 +173,16 @@ using std::size_t;
       //return one past the last element
       return out_it;
     }
+    else if((start_index)<=max_bernoulli_index<T>::value && (start_index + number_of_bernoullis_bn) > max_bernoulli_index<T>::value)
+    {
+        out_it=bernoulli_series_imp<T,OutputIterator,Policy>(start_index,max_bernoulli_index<T>::value - start_index +1, out_it,pol);
 
+        out_it=bernoulli_series_imp<T,OutputIterator,Policy>(max_bernoulli_index<T>::value+1,
+                                                            number_of_bernoullis_bn - max_bernoulli_index<T>::value + start_index -1,
+                                                            out_it,
+                                                            pol);
+        return out_it;
+    }
     std::vector<T> bn;
 
     tangent_numbers_series(bn, start_index , number_of_bernoullis_bn);
@@ -191,7 +203,7 @@ using std::size_t;
   template <class T>
   struct max_bernoulli_index
   {
-    BOOST_STATIC_CONSTANT(unsigned, value = 18);
+    BOOST_STATIC_CONSTANT(unsigned, value = 17);
   };
 
   template <>
@@ -215,7 +227,7 @@ using std::size_t;
   template <class T>
   inline T unchecked_bernoulli_imp(unsigned n, const mpl::int_<3>& )
   {
-    static const boost::array<boost::int64_t, 19U> numerators =
+    static const boost::array<boost::int64_t, 18U> numerators =
     {{
       boost::int64_t(            +1LL),
       boost::int64_t(            +1LL),
@@ -237,7 +249,7 @@ using std::size_t;
       boost::int64_t(+2577687858367LL)
     }};
 
-    static const boost::array<boost::int64_t, 19U> denominators =
+    static const boost::array<boost::int64_t, 18U> denominators =
     {{
       boost::int64_t(      1LL),
       boost::int64_t(      6LL),
@@ -256,10 +268,8 @@ using std::size_t;
       boost::int64_t(    870LL),
       boost::int64_t(  14322LL),
       boost::int64_t(    510LL),
-      boost::int64_t(      6LL),
-      boost::int64_t(1919190LL)
+      boost::int64_t(      6LL)
     }};
-
     return T(numerators[n]) / denominators[n];
   }
 
