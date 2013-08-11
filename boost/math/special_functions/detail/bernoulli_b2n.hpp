@@ -36,6 +36,26 @@ using std::size_t;
   template<class T>
   inline T unchecked_bernoulli_b2n(unsigned n);
 
+  template<class T,class TypeIterator>
+  inline void tangent(TypeIterator tangent_numbers,const int &m, T /*z*/)
+  {
+    tangent_numbers[0U] = T(0U);
+    tangent_numbers[1U] = T(1U);
+
+    for(size_t k = 2; k <= m; k++)
+    {
+      tangent_numbers[k] = (k - 1) * tangent_numbers[k - 1];
+    }
+
+    for(size_t k = 2; k <= m; k++)
+    {
+      for(size_t j = k; j <= m; j++)
+      {
+        tangent_numbers[j] = (tangent_numbers[j - 1] * (j - k)) + (tangent_numbers[j] * (j - k + 2));
+      }
+    }
+
+  }
 
   template <class T>
   T tangent_numbers(const int nn)
@@ -50,26 +70,10 @@ using std::size_t;
 
     std::vector<T> tangent_numbers(m + 1);
 
-    tangent_numbers[0U] = T(0U);
-    tangent_numbers[1U] = T(1U);
+    boost::math::detail::tangent(tangent_numbers.begin(),m,T(1));
 
-    T power_two(2);
-
-    for(size_t k = 2; k <= m; k++)
-    {
-      power_two*=2;
-      tangent_numbers[k] = (k - 1) * tangent_numbers[k - 1];
-    }
-
-    power_two *= power_two;
-
-    for(size_t k = 2; k <= m; k++)
-    {
-      for(size_t j = k; j <= m; j++)
-      {
-        tangent_numbers[j] = (tangent_numbers[j - 1] * (j - k)) + (tangent_numbers[j] * (j - k + 2));
-      }
-    }
+    T power_two(1);
+    power_two=ldexp(T(1),2*m);
 
     T x = static_cast<T>(nn);
     x = x / (power_two*(power_two-1));
@@ -84,31 +88,12 @@ using std::size_t;
     size_t m = start_index + number_of_bernoullis_bn;
     std::vector<T> tangent_numbers(m+1);
 
-    tangent_numbers[0U] = T(0U);
-    tangent_numbers[1U] = T(1u);
+    boost::math::detail::tangent(tangent_numbers.begin(),m,T(1));
 
-    for(size_t k = 2; k <= m; k++)
-    {
-      tangent_numbers[k] = (k - 1) * tangent_numbers[k - 1];
-    }
-
-    for(size_t k = 2; k <= m; k++)
-    {
-      for(size_t j = k; j <= m; j++)
-      {
-        tangent_numbers[j] = (tangent_numbers[j - 1] * (j - k)) + (tangent_numbers[j] * (j - k + 2));
-      }
-    }
 
     T power_two(1);
 
-    for(int i = 1; i <= start_index; i++)
-    {
-      power_two*=2;
-    }
-
-    power_two*=power_two;
-
+    power_two=ldexp(T(1),2*start_index);
     bn.clear();
     bn.resize(number_of_bernoullis_bn);
 
