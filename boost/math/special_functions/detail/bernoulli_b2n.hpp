@@ -22,6 +22,7 @@
   #include <boost/mpl/int.hpp>
   #include <boost/type_traits/is_convertible.hpp>
   #include <boost/multiprecision/cpp_dec_float.hpp>
+  #include <boost/math/constants/constants.hpp>
 
 using namespace boost::multiprecision;
 using std::size_t;
