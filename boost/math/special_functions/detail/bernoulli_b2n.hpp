@@ -159,7 +159,7 @@ using std::size_t;
     {
       if(k >= min_overflow_index && boost::math::tools::max_value<T>()/(k-1) < tangent_numbers[k-1])
       {
-          tangent_numbers[k]=policies::raise_domain_error<T>("boost::math::bernoulli<%1%>", "Overflow error while calculating tangent number %1%", k, Policy());
+          tangent_numbers[k]=policies::raise_overflow_error<T>("boost::math::bernoulli<%1%>", "Overflow error while calculating tangent number %1%", Policy());
       }
       else
         tangent_numbers[k] = (k - 1) * tangent_numbers[k - 1];
@@ -176,7 +176,7 @@ using std::size_t;
             (boost::math::isinf)(tangent_numbers[j])
            ))
         {
-            tangent_numbers[j]=policies::raise_domain_error<T>("boost::math::bernoulli<%1%>", "Overflow error while calculating tangent number %1%", k, Policy());
+            tangent_numbers[j]=policies::raise_overflow_error<T>("boost::math::bernoulli<%1%>", "Overflow error while calculating tangent number %1%", Policy());
         }
         else
             tangent_numbers[j] = (tangent_numbers[j - 1] * (j - k)) + (tangent_numbers[j] * (j - k + 2));
