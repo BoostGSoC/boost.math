@@ -103,6 +103,9 @@ using std::size_t;
     // Check if the index might overflow. :Here we multiply the estimated
     // value once again by 1.1 in order to remain conservative with
     // the prediction of potential overflow.
+   // std::cout<<(std::numeric_limits<T>::max_exponent)<<std::endl;
+    //std::cout<<ldexp(T(1),approximate_exponent2_of_bn)<<std::endl;
+//    std::cout<<n<<" "<<approximate_exponent2_of_bn<<std::endl;
     const bool the_index_might_overflow = (T(approximate_exponent2_of_bn * 1.1F) > max_exponent2);
 
     return the_index_might_overflow;
@@ -111,17 +114,22 @@ using std::size_t;
   template<class T>
   int possible_overflow_index()
   {
-
+  /*  std::cout<<"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n";
+    for(int i=0;i<50;i++)
+        bernouli_impl_index_might_overflow<T>(i*2);
+    std::cout<<"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n";*/
     // we use binary search to determine a good approximation for an indec that might overflow
 
+    //std::cout<<bernouli_impl_index_might_overflow<T>(40)<<std::endl;
     int upper_limit=10000;
     int lower_limit=1;
-    if(bernouli_impl_index_might_overflow<T>(upper_limit)==0)
+    if(bernouli_impl_index_might_overflow<T>(upper_limit*2)==0)
         return upper_limit;
+
     while(upper_limit > lower_limit + 4)
     {
         int mid = (upper_limit + lower_limit)/2;
-        if(bernouli_impl_index_might_overflow<T>(mid)==0)
+        if(bernouli_impl_index_might_overflow<T>(mid*2)==0)
             lower_limit=mid;
         else
             upper_limit=mid;
@@ -142,7 +150,7 @@ using std::size_t;
   {
 
     static int min_overflow_index=possible_overflow_index<T>();
-//    std::cout<<"min_overflow: "<<min_overflow_index<<std::endl;
+    //std::cout<<"min_overflow: "<<min_overflow_index<<std::endl;
 
     tangent_numbers[0U] = T(0U);
     tangent_numbers[1U] = T(1U);
@@ -151,7 +159,7 @@ using std::size_t;
     {
       if(k >= min_overflow_index && boost::math::tools::max_value<T>()/(k-1) < tangent_numbers[k-1])
       {
-          policies::raise_domain_error<T>("boost::math::bernoulli<%1%>", "Overflow error while calculating tangent number %1%", k, Policy());
+          tangent_numbers[k]=policies::raise_domain_error<T>("boost::math::bernoulli<%1%>", "Overflow error while calculating tangent number %1%", k, Policy());
       }
       else
         tangent_numbers[k] = (k - 1) * tangent_numbers[k - 1];
@@ -164,15 +172,20 @@ using std::size_t;
         if(j>=min_overflow_index &&
            (boost::math::tools::max_value<T>()/(j-k) <tangent_numbers[j-1] ||
             boost::math::tools::max_value<T>()/(j-k+2) <tangent_numbers[j] ||
-            boost::math::tools::max_value<T>() - tangent_numbers[j-1]*(j-k) < tangent_numbers[j]*(j-k+2)
+            boost::math::tools::max_value<T>() - tangent_numbers[j-1]*(j-k) < tangent_numbers[j]*(j-k+2)||
+            (boost::math::isinf)(tangent_numbers[j])
            ))
         {
-            policies::raise_domain_error<T>("boost::math::bernoulli<%1%>", "Overflow error while calculating tangent number %1%", k, Policy());
+            tangent_numbers[j]=policies::raise_domain_error<T>("boost::math::bernoulli<%1%>", "Overflow error while calculating tangent number %1%", k, Policy());
         }
         else
             tangent_numbers[j] = (tangent_numbers[j - 1] * (j - k)) + (tangent_numbers[j] * (j - k + 2));
       }
     }
+ /*   for(int i=0;i<=m;i++)
+    {
+        std::cout<<tangent_numbers[i]<<std::endl;
+    }*/
   }
 
   template <class T, class Policy>
