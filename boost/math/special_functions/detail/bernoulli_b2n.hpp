@@ -244,36 +244,13 @@ using std::size_t;
     }
   }
 
-  template <class T, class Policy>
-  T bernoulli_number_imp(const int n, const Policy &pol)
-  {
-
-    if(n<0)
-    {
-       policies::raise_domain_error<T>("boost::math::bernoulli<%1%>", "Index should be >= 0 but got %1%", n/2, Policy());
-    }
-
-    if((n/2)<=max_bernoulli_index<T>::value)
-    {
-	    return unchecked_bernoulli_b2n<T>(n/2);
-    }
-    else
-    {
-      T x=tangent_numbers<T>(n,pol);
-      return x;
-    }
-  }
-
   template <class T, class OutputIterator, class Policy>
-  inline OutputIterator bernoulli_series_imp(int start_index,
+  inline OutputIterator cache_imp(int start_index,
                                       unsigned number_of_bernoullis_bn,
                                       OutputIterator out_it,
                                       const Policy& pol)
   {
-    if(start_index<0)
-    {
-       policies::raise_domain_error<T>("boost::math::bernoulli<%1%>", "Start Index should be >= 0 but got %1%", start_index, Policy());
-    }
+
     if((start_index + number_of_bernoullis_bn - 1) <= max_bernoulli_index<T>::value)
     {
       OutputIterator last= out_it + number_of_bernoullis_bn;
@@ -290,9 +267,9 @@ using std::size_t;
     }
     else if((start_index)<=max_bernoulli_index<T>::value && (start_index + number_of_bernoullis_bn) > max_bernoulli_index<T>::value)
     {
-        out_it=bernoulli_series_imp<T,OutputIterator,Policy>(start_index,max_bernoulli_index<T>::value - start_index +1, out_it,pol);
+        out_it=cache_imp<T,OutputIterator,Policy>(start_index,max_bernoulli_index<T>::value - start_index +1, out_it,pol);
 
-        out_it=bernoulli_series_imp<T,OutputIterator,Policy>(max_bernoulli_index<T>::value+1,
+        out_it=cache_imp<T,OutputIterator,Policy>(max_bernoulli_index<T>::value+1,
                                                             number_of_bernoullis_bn - max_bernoulli_index<T>::value + start_index -1,
                                                             out_it,
                                                             pol);
@@ -314,6 +291,71 @@ using std::size_t;
 
     return out_it;
   }
+
+
+  template <class T, class Policy>
+  T bernoulli_number_imp(const int n, const Policy &pol)
+  {
+
+    if(n<0)
+    {
+       policies::raise_domain_error<T>("boost::math::bernoulli<%1%>", "Index should be >= 0 but got %1%", n/2, Policy());
+    }
+
+    static std::vector<T> cache_table;
+    std::size_t previous_cache_size = cache_table.size();
+    std::size_t index=n/2;
+    if( previous_cache_size <= index)
+    {
+        cache_table.resize(index+1);
+        cache_imp<T>(previous_cache_size,index-previous_cache_size+1,cache_table.begin()+previous_cache_size,pol);
+    }
+    return cache_table[index];
+
+/*    if((n/2)<=max_bernoulli_index<T>::value)
+    {
+	    return unchecked_bernoulli_b2n<T>(n/2);
+    }
+    else
+    {
+      T x=tangent_numbers<T>(n,pol);
+      return x;
+    }*/
+  }
+
+  template <class T, class OutputIterator, class Policy>
+  inline OutputIterator bernoulli_series_imp(int start_index,
+                                      unsigned number_of_bernoullis_bn,
+                                      OutputIterator out_it,
+                                      const Policy& pol)
+  {
+    if(start_index<0)
+    {
+       policies::raise_domain_error<T>("boost::math::bernoulli<%1%>", "Start Index should be >= 0 but got %1%", start_index, Policy());
+    }
+    static std::vector<T> cache_table;
+    std::size_t previous_cache_size = cache_table.size();
+    std::size_t index=start_index + number_of_bernoullis_bn -1;
+    if( previous_cache_size <= index)
+    {
+        cache_table.resize(index+1);
+        cache_imp<T,OutputIterator,Policy>(previous_cache_size,index-previous_cache_size+1,cache_table.begin()+previous_cache_size,pol);
+    }
+
+    OutputIterator last= out_it + number_of_bernoullis_bn;
+
+    while(out_it!=last)
+    {
+    *out_it = cache_table[start_index];
+    ++out_it;
+    ++start_index;
+    }
+
+      //return one past the last element
+    return out_it;
+
+  }
+
 
   template <class T>
   struct max_bernoulli_index
