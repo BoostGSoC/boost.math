@@ -103,6 +103,9 @@ using std::size_t;
     // Check if the index might overflow. :Here we multiply the estimated
     // value once again by 1.1 in order to remain conservative with
     // the prediction of potential overflow.
+   // std::cout<<(std::numeric_limits<T>::max_exponent)<<std::endl;
+    //std::cout<<ldexp(T(1),approximate_exponent2_of_bn)<<std::endl;
+//    std::cout<<n<<" "<<approximate_exponent2_of_bn<<std::endl;
     const bool the_index_might_overflow = (T(approximate_exponent2_of_bn * 1.1F) > max_exponent2);
 
     return the_index_might_overflow;
@@ -111,17 +114,22 @@ using std::size_t;
   template<class T>
   int possible_overflow_index()
   {
-
+  /*  std::cout<<"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n";
+    for(int i=0;i<50;i++)
+        bernouli_impl_index_might_overflow<T>(i*2);
+    std::cout<<"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n";*/
     // we use binary search to determine a good approximation for an indec that might overflow
 
+    //std::cout<<bernouli_impl_index_might_overflow<T>(40)<<std::endl;
     int upper_limit=10000;
     int lower_limit=1;
-    if(bernouli_impl_index_might_overflow<T>(upper_limit)==0)
+    if(bernouli_impl_index_might_overflow<T>(upper_limit*2)==0)
         return upper_limit;
+
     while(upper_limit > lower_limit + 4)
     {
         int mid = (upper_limit + lower_limit)/2;
-        if(bernouli_impl_index_might_overflow<T>(mid)==0)
+        if(bernouli_impl_index_might_overflow<T>(mid*2)==0)
             lower_limit=mid;
         else
             upper_limit=mid;
@@ -142,7 +150,7 @@ using std::size_t;
   {
 
     static int min_overflow_index=possible_overflow_index<T>();
-//    std::cout<<"min_overflow: "<<min_overflow_index<<std::endl;
+    //std::cout<<"min_overflow: "<<min_overflow_index<<std::endl;
 
     tangent_numbers[0U] = T(0U);
     tangent_numbers[1U] = T(1U);
@@ -151,7 +159,7 @@ using std::size_t;
     {
       if(k >= min_overflow_index && boost::math::tools::max_value<T>()/(k-1) < tangent_numbers[k-1])
       {
-          policies::raise_domain_error<T>("boost::math::bernoulli<%1%>", "Overflow error while calculating tangent number %1%", k, Policy());
+          tangent_numbers[k]=policies::raise_overflow_error<T>("boost::math::bernoulli<%1%>", "Overflow error while calculating tangent number %1%", Policy());
       }
       else
         tangent_numbers[k] = (k - 1) * tangent_numbers[k - 1];
@@ -164,15 +172,20 @@ using std::size_t;
         if(j>=min_overflow_index &&
            (boost::math::tools::max_value<T>()/(j-k) <tangent_numbers[j-1] ||
             boost::math::tools::max_value<T>()/(j-k+2) <tangent_numbers[j] ||
-            boost::math::tools::max_value<T>() - tangent_numbers[j-1]*(j-k) < tangent_numbers[j]*(j-k+2)
+            boost::math::tools::max_value<T>() - tangent_numbers[j-1]*(j-k) < tangent_numbers[j]*(j-k+2)||
+            (boost::math::isinf)(tangent_numbers[j])
            ))
         {
-            policies::raise_domain_error<T>("boost::math::bernoulli<%1%>", "Overflow error while calculating tangent number %1%", k, Policy());
+            tangent_numbers[j]=policies::raise_overflow_error<T>("boost::math::bernoulli<%1%>", "Overflow error while calculating tangent number %1%", Policy());
         }
         else
             tangent_numbers[j] = (tangent_numbers[j - 1] * (j - k)) + (tangent_numbers[j] * (j - k + 2));
       }
     }
+ /*   for(int i=0;i<=m;i++)
+    {
+        std::cout<<tangent_numbers[i]<<std::endl;
+    }*/
   }
 
   template <class T, class Policy>
@@ -231,36 +244,13 @@ using std::size_t;
     }
   }
 
-  template <class T, class Policy>
-  T bernoulli_number_imp(const int n, const Policy &pol)
-  {
-
-    if(n<0)
-    {
-       policies::raise_domain_error<T>("boost::math::bernoulli<%1%>", "Index should be >= 0 but got %1%", n/2, Policy());
-    }
-
-    if((n/2)<=max_bernoulli_index<T>::value)
-    {
-	    return unchecked_bernoulli_b2n<T>(n/2);
-    }
-    else
-    {
-      T x=tangent_numbers<T>(n,pol);
-      return x;
-    }
-  }
-
   template <class T, class OutputIterator, class Policy>
-  inline OutputIterator bernoulli_series_imp(int start_index,
+  inline OutputIterator cache_imp(int start_index,
                                       unsigned number_of_bernoullis_bn,
                                       OutputIterator out_it,
                                       const Policy& pol)
   {
-    if(start_index<0)
-    {
-       policies::raise_domain_error<T>("boost::math::bernoulli<%1%>", "Start Index should be >= 0 but got %1%", start_index, Policy());
-    }
+
     if((start_index + number_of_bernoullis_bn - 1) <= max_bernoulli_index<T>::value)
     {
       OutputIterator last= out_it + number_of_bernoullis_bn;
@@ -277,9 +267,9 @@ using std::size_t;
     }
     else if((start_index)<=max_bernoulli_index<T>::value && (start_index + number_of_bernoullis_bn) > max_bernoulli_index<T>::value)
     {
-        out_it=bernoulli_series_imp<T,OutputIterator,Policy>(start_index,max_bernoulli_index<T>::value - start_index +1, out_it,pol);
+        out_it=cache_imp<T,OutputIterator,Policy>(start_index,max_bernoulli_index<T>::value - start_index +1, out_it,pol);
 
-        out_it=bernoulli_series_imp<T,OutputIterator,Policy>(max_bernoulli_index<T>::value+1,
+        out_it=cache_imp<T,OutputIterator,Policy>(max_bernoulli_index<T>::value+1,
                                                             number_of_bernoullis_bn - max_bernoulli_index<T>::value + start_index -1,
                                                             out_it,
                                                             pol);
@@ -301,6 +291,71 @@ using std::size_t;
 
     return out_it;
   }
+
+
+  template <class T, class Policy>
+  T bernoulli_number_imp(const int n, const Policy &pol)
+  {
+
+    if(n<0)
+    {
+       policies::raise_domain_error<T>("boost::math::bernoulli<%1%>", "Index should be >= 0 but got %1%", n/2, Policy());
+    }
+
+    static std::vector<T> cache_table;
+    std::size_t previous_cache_size = cache_table.size();
+    std::size_t index=n/2;
+    if( previous_cache_size <= index)
+    {
+        cache_table.resize(index+1);
+        cache_imp<T>(previous_cache_size,index-previous_cache_size+1,cache_table.begin()+previous_cache_size,pol);
+    }
+    return cache_table[index];
+
+/*    if((n/2)<=max_bernoulli_index<T>::value)
+    {
+	    return unchecked_bernoulli_b2n<T>(n/2);
+    }
+    else
+    {
+      T x=tangent_numbers<T>(n,pol);
+      return x;
+    }*/
+  }
+
+  template <class T, class OutputIterator, class Policy>
+  inline OutputIterator bernoulli_series_imp(int start_index,
+                                      unsigned number_of_bernoullis_bn,
+                                      OutputIterator out_it,
+                                      const Policy& pol)
+  {
+    if(start_index<0)
+    {
+       policies::raise_domain_error<T>("boost::math::bernoulli<%1%>", "Start Index should be >= 0 but got %1%", start_index, Policy());
+    }
+    static std::vector<T> cache_table;
+    std::size_t previous_cache_size = cache_table.size();
+    std::size_t index=start_index + number_of_bernoullis_bn -1;
+    if( previous_cache_size <= index)
+    {
+        cache_table.resize(index+1);
+        cache_imp<T,OutputIterator,Policy>(previous_cache_size,index-previous_cache_size+1,cache_table.begin()+previous_cache_size,pol);
+    }
+
+    OutputIterator last= out_it + number_of_bernoullis_bn;
+
+    while(out_it!=last)
+    {
+    *out_it = cache_table[start_index];
+    ++out_it;
+    ++start_index;
+    }
+
+      //return one past the last element
+    return out_it;
+
+  }
+
 
   template <class T>
   struct max_bernoulli_index
