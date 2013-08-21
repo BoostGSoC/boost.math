@@ -13,6 +13,7 @@
 
   #include <boost/array.hpp>
   #include <boost/cstdint.hpp>
+  #include <boost/math/special_functions/factorials.hpp>
   #include "detail/polygamma.hpp"
 
   namespace boost { namespace math {
@@ -32,11 +33,11 @@
   template<class T, class Policy>
   inline T digamma(T x, const Policy &pol)
   {
-      return boost::math::polygamma(2,x,pol);
+      return boost::math::polygamma(0,x,pol);
   }
 
   template<class T>
-  inline digamma(T x)
+  inline T digamma(T x)
   {
       return boost::math::digamma(x,policies::policy<>());
   }
@@ -44,11 +45,11 @@
   template<class T, class Policy>
   inline T trigamma(T x, const Policy &pol)
   {
-      return boost::math::polygamma(3,x,pol);
+      return boost::math::polygamma(1,x,pol);
   }
 
   template<class T>
-  inline trigamma(T x)
+  inline T trigamma(T x)
   {
       return boost::math::trigamma(x,policies::policy<>());
   }
