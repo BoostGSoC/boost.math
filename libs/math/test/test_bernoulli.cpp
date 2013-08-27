@@ -14,8 +14,10 @@
 #define SC_(x) static_cast<typename table_type<T>::type>(BOOST_JOIN(x, L))
 
 template <class T>
-void test()
+void test(const char* name)
 {
+   std::cout << "Testing type " << name << ":\n";
+
    static const typename table_type<T>::type data[] = 
    {
       /* First 50 from 2 to 100 inclusive: */
@@ -131,7 +133,28 @@ void test()
    for(unsigned i = 1; i <= 100; ++i)
    {
       T b2n = boost::math::bernoulli_b2n<T>(i);
-      BOOST_CHECK_CLOSE_FRACTION(b2n, data[i - 1], tol);
+      if((boost::math::isinf)(b2n))
+      {
+         if(!(boost::math::isinf)(data[i - 1]))
+         {
+            std::cout << "When calculating B2N(" << i << ")\n";
+            BOOST_ERROR("Got an infinity when one wasn't expected");
+         }
+         else if((b2n > 0) != (data[i - 1] > 0))
+         {
+            std::cout << "When calculating B2N(" << i << ")\n";
+            BOOST_ERROR("Sign of infinity was incorrect");
+         }
+      }
+      else if((boost::math::isnan)(b2n))
+      {
+         std::cout << "When calculating B2N(" << i << ")\n";
+         BOOST_ERROR("Result of B2n was a NaN, and that should never happen!");
+      }
+      else
+      {
+         BOOST_CHECK_CLOSE_FRACTION(b2n, data[i - 1], tol);
+      }
    }
 
 }
@@ -139,10 +162,10 @@ void test()
 
 BOOST_AUTO_TEST_CASE( test_main )
 {
-   test<float>();
-   test<double>();
-   test<long double>();
-   test<boost::math::concepts::real_concept>();
+   test<float>("float");
+   test<double>("double");
+   test<long double>("long double");
+   test<boost::math::concepts::real_concept>("real_concept");
 }
 
 
