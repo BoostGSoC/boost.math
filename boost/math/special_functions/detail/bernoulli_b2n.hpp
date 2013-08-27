@@ -17,6 +17,7 @@
   #include <boost/cstdint.hpp>
   #include <boost/math/special_functions/pow.hpp>
   #include <boost/math/policies/policy.hpp>
+  #include <boost/math/policies/error_handling.hpp>
   #include <boost/static_assert.hpp>
   #include <boost/mpl/if.hpp>
   #include <boost/mpl/int.hpp>
@@ -159,7 +160,7 @@
          && (boost::math::tools::max_value<T>()/(k - 1) < tangent_numbers[k - 1])
         )
       {
-        tangent_numbers[k]=policies::raise_overflow_error<T>("boost::math::bernoulli<%1%>", "Overflow error while calculating tangent number %1%", Policy());
+        tangent_numbers[k]=policies::raise_overflow_error<T>("boost::math::bernoulli<%1%>", "Overflow error while calculating tangent number %1%", k,Policy());
       }
       else
       {
@@ -178,7 +179,7 @@
                || ((boost::math::isinf)(tangent_numbers[j])))
           )
         {
-          tangent_numbers[j] = policies::raise_overflow_error<T>("boost::math::bernoulli<%1%>", "Overflow error while calculating tangent number %1%", Policy());
+          tangent_numbers[j] = policies::raise_overflow_error<T>("boost::math::bernoulli<%1%>", "Overflow error while calculating tangent number %1%", j,Policy());
         }
         else
         {
