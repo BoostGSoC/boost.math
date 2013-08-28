@@ -80,12 +80,12 @@
 
     // Here, we use an asymptotic expansion of |Bn| from Luschny
     // to estimate if a given index n for Bn *might* overflow.
-    const T log_of_four_pi = log(boost::math::constants::two_pi<T>() * 2);
+    const T log_of_four_pi = T(log(boost::math::constants::two_pi<T>() * 2));
     const T two_pi_e       = boost::math::constants::two_pi<T>() * boost::math::constants::e<T>();
     const float nf = static_cast<float>(n);
     const T nx (nf);
     const T nx2(nx * nx);
-    const T n_log_term     = (nx + boost::math::constants::half<T>()) * log(nx / two_pi_e);
+    const T n_log_term     = (nx + boost::math::constants::half<T>()) * T(log(nx / two_pi_e));
 
     const T approximate_log_of_bn =   log_of_four_pi
                                     + n_log_term
@@ -95,7 +95,7 @@
                                     + (T(1) / (nx2 * nx2 * nx * 1260))
                                     + n * boost::math::constants::ln_two<T>()
                                     - log(nx)
-                                    + log(ldexp(T(1), n) - 1);
+                                    + T(log(ldexp(T(1), n) - 1));
 
     const T approximate_exponent2_of_bn =   approximate_log_of_bn / boost::math::constants::ln_two<T>();
 
@@ -143,7 +143,7 @@
   struct max_bernoulli_index;
 
   template<class T>
-  inline T unchecked_bernoulli_b2n(unsigned n);
+  inline T unchecked_bernoulli_b2n(size_t n);
 
   template<class T,class TypeIterator,class Policy>
   inline void tangent(TypeIterator tangent_numbers,const int &m, T /*z*/, Policy &pol)
@@ -215,7 +215,7 @@
   }
 
   template <class T, class Policy>
-  void tangent_numbers_series(std::vector<T>& bn, const int start_index, const unsigned number_of_bernoullis_bn, Policy &pol)
+  void tangent_numbers_series(std::vector<T>& bn, const size_t start_index, const size_t number_of_bernoullis_bn, Policy &pol)
   {
     const size_t m = start_index + number_of_bernoullis_bn;
 
@@ -226,14 +226,14 @@
 
     T power_two(1);
 
-    power_two = ldexp(T(1), 2 * start_index);
+    power_two = ldexp(T(1), 2 * static_cast<boost::int32_t>(start_index));
 
     bn.clear();
     bn.resize(number_of_bernoullis_bn);
 
     for(size_t i = 0; i < number_of_bernoullis_bn; i++)
     {
-      T b((i + start_index) * 2);
+      T b(((i + start_index) * 2));
 
       b  = b / (power_two * (power_two - 1));
       b *= tangent_numbers[i+start_index];
@@ -247,8 +247,8 @@
   }
 
   template <class T, class OutputIterator, class Policy>
-  inline OutputIterator cache_imp(int start_index,
-                                      unsigned number_of_bernoullis_bn,
+  inline OutputIterator cache_imp(size_t start_index,
+                                      size_t number_of_bernoullis_bn,
                                       OutputIterator out_it,
                                       const Policy& pol)
   {
@@ -267,8 +267,8 @@
       //return one past the last element
       return out_it;
     }
-    else if(   ( start_index <= max_bernoulli_index<T>::value)
-            && ((start_index + number_of_bernoullis_bn) > max_bernoulli_index<T>::value)
+    else if(   ( start_index <= static_cast<boost::int32_t>(max_bernoulli_index<T>::value))
+            && ((start_index + number_of_bernoullis_bn) > static_cast<boost::int32_t>(max_bernoulli_index<T>::value))
            )
     {
       out_it=cache_imp<T,OutputIterator,Policy>(start_index,max_bernoulli_index<T>::value - start_index +1, out_it,pol);
@@ -303,7 +303,7 @@
   {
     if(n < 0)
     {
-      policies::raise_domain_error<T>("boost::math::bernoulli<%1%>", "Index should be >= 0 but got %1%", n/2, Policy());
+      policies::raise_domain_error<T>("boost::math::bernoulli<%1%>", "Index should be >= 0 but got %1%", T(n/2), Policy());
     }
 
     static std::vector<T> cache_table;
@@ -330,7 +330,7 @@
   {
     if(start_index < 0)
     {
-       policies::raise_domain_error<T>("boost::math::bernoulli<%1%>", "Start Index should be >= 0 but got %1%", start_index, Policy());
+       policies::raise_domain_error<T>("boost::math::bernoulli<%1%>", "Start Index should be >= 0 but got %1%", T(start_index), Policy());
     }
 
     // TBD: Some kind of initialization before main()?
@@ -386,7 +386,7 @@
   };
 
   template <class T>
-  inline T unchecked_bernoulli_imp(unsigned n, const mpl::int_<3>& )
+  inline T unchecked_bernoulli_imp(size_t n, const mpl::int_<3>& )
   {
     static const boost::array<boost::int64_t, 18U> numerators =
     {{
@@ -435,7 +435,7 @@
   }
 
   template <class T>
-  inline T unchecked_bernoulli_imp(unsigned n, const mpl::int_<1>& )
+  inline T unchecked_bernoulli_imp(size_t n, const mpl::int_<1>& )
   {
     static const boost::array<float, 32U> bernoulli_data =
     {{
@@ -478,7 +478,7 @@
 
 
   template <class T>
-  inline T unchecked_bernoulli_imp(unsigned n, const mpl::int_<2>& )
+  inline T unchecked_bernoulli_imp(size_t n, const mpl::int_<2>& )
   {
     static const boost::array<long double, 130U> bernoulli_data =
     {{
@@ -618,7 +618,7 @@
   }
 
   template<class T>
-  inline T unchecked_bernoulli_b2n(unsigned n)
+  inline T unchecked_bernoulli_b2n(size_t n)
   {
     typedef typename mpl::if_c<
          (std::numeric_limits<T>::max_exponent >= 128)
