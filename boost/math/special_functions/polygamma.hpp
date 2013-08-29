@@ -18,10 +18,27 @@
 
   namespace boost { namespace math {
 
+  template<class T>	  
+  struct promoteftod
+  {
+	  typedef T type;
+  };  
+
+  template<>
+  struct promoteftod<float>
+  {
+	  typedef double type;
+  };
+
   template<class T, class Policy>
   inline T polygamma(const int n, T x, const Policy &pol)
   {
-        return boost::math::detail::polygamma_imp(n,x,pol);
+	typedef typename promoteftod<T>::type result_type;
+//	std::cout<<"~:"<<typeid(T).name()<<std::endl;
+//	std::cout<<"~:"<<typeid(result_type).name()<<std::endl;
+	result_type xx=result_type(x);
+        result_type result= boost::math::detail::polygamma_imp(n,xx,pol);
+	return T(result);
   }
 
   template<class T>
