@@ -38,8 +38,46 @@ namespace boost { namespace math { namespace detail {
   };
 
   template<class T, class Policy>
+  T digamma_atinfinityplus(const int n, const T &x, const Policy &pol)
+  {
+        T z=x;
+        T log_z=T(log(z));
+        T one_over_2z= T(1)/(2*z);
+        T sum=T(0);
+
+        for(int two_k=2; two_k < max_iteration<T>::value; two_k+=2)
+        {
+                T term=T(1);
+                T one_over_two_k=T(1)/two_k;
+                T z_pow_two_k=pow(z,static_cast<boost::int32_t>(two_k));
+                T one_over_z_pow_two_k = T(1)/z_pow_two_k;
+                T bernoulli_term= boost::math::bernoulli_b2n<T>(two_k/2);
+
+                term = bernoulli_term * one_over_two_k * one_over_z_pow_two_k;
+
+                sum+=term;
+
+                if((two_k > static_cast<boost::int32_t>(50)) /*&& (order_check < -ef::tol())*/)
+                {
+                    break;
+                }
+
+        }
+
+        T answer = log_z - one_over_2z -sum;
+
+        return answer;
+  }
+
+  template<class T, class Policy>
   T polygamma_atinfinityplus(const int n, const T &x, const Policy &pol) // for large values of x such as for x> 400
   {
+
+  //TODO Answer is very inaccurate for floating point arguments with inexact binary representation...look into it
+
+     if(n==0)
+        return digamma_atinfinityplus(n,x,pol);
+
      BOOST_MATH_STD_USING
 
      const bool b_negate = (n % 2 == 0);
@@ -86,6 +124,7 @@ namespace boost { namespace math { namespace detail {
   template<class T, class Policy>
   inline T polygamma_imp(const int n, T x, const Policy &pol)
   {
+//	  std::cout<<typeid(T).name()<<std::endl;
         return polygamma_atinfinityplus(n,x,pol); //just a test return value
   }
 
