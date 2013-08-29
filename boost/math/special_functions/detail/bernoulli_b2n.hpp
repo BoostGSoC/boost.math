@@ -160,11 +160,11 @@
          && (boost::math::tools::max_value<T>()/(k - 1) < tangent_numbers[k - 1])
         )
       {
-        tangent_numbers[k]=policies::raise_overflow_error<T>("boost::math::bernoulli<%1%>", "Overflow error while calculating tangent number %1%", k,Policy());
+        tangent_numbers[k]=policies::raise_overflow_error<T>("boost::math::bernoulli<%1%>", "Overflow error while calculating tangent number %1%", T(k),Policy());
       }
       else
       {
-        tangent_numbers[k] = (k - 1) * tangent_numbers[k - 1];
+        tangent_numbers[k] = (T(k - 1)) * tangent_numbers[k - 1];
       }
     }
 
@@ -179,7 +179,7 @@
                || ((boost::math::isinf)(tangent_numbers[j])))
           )
         {
-          tangent_numbers[j] = policies::raise_overflow_error<T>("boost::math::bernoulli<%1%>", "Overflow error while calculating tangent number %1%", j,Policy());
+          tangent_numbers[j] = policies::raise_overflow_error<T>("boost::math::bernoulli<%1%>", "Overflow error while calculating tangent number %1%", T(j),Policy());
         }
         else
         {
