@@ -16,6 +16,7 @@
   #include <cmath>
   #include <boost/cstdint.hpp>
   #include <boost/math/special_functions/pow.hpp>
+  #include <boost/math/special_functions/zeta.hpp>
   #include <boost/math/policies/policy.hpp>
   #include <boost/static_assert.hpp>
   #include "../bernoulli.hpp"
@@ -40,6 +41,8 @@ namespace boost { namespace math { namespace detail {
   template<class T, class Policy>
   T digamma_atinfinityplus(const int n, const T &x, const Policy &pol)
   {
+	  // calculate a high bernoulli number upfront to make use of cache
+	  boost::math::bernoulli_b2n<T>(300);
         T z=x;
         T log_z=T(log(z));
         T one_over_2z= T(1)/(2*z);
@@ -57,7 +60,8 @@ namespace boost { namespace math { namespace detail {
 
                 sum+=term;
 
-                if((two_k > static_cast<boost::int32_t>(50)) /*&& (order_check < -ef::tol())*/)
+		// TODO need a way to decide when to break
+                if((two_k > static_cast<boost::int32_t>(500)) /*&& (order_check < -ef::tol())*/)
                 {
                     break;
                 }
@@ -73,7 +77,6 @@ namespace boost { namespace math { namespace detail {
   T polygamma_atinfinityplus(const int n, const T &x, const Policy &pol) // for large values of x such as for x> 400
   {
 
-  //TODO Answer is very inaccurate for floating point arguments with inexact binary representation...look into it
 
      if(n==0)
         return digamma_atinfinityplus(n,x,pol);
@@ -122,10 +125,61 @@ namespace boost { namespace math { namespace detail {
   }
 
   template<class T, class Policy>
+  T polygamma_nearzero(const int n, const T &x, const Policy &pol)
+  {
+    // Use a series expansion for x near zero which uses poly_gamma(m, 1) which,
+    // in turn, uses the Riemann zeta function for integer arguments.
+    // http://functions.wolfram.com/GammaBetaErf/PolyGamma2/06/01/03/01/02/
+    const bool b_negate = (( n % 2 ) == 0 ) ;
+
+    const T n_fact               =  boost::math::factorial<T>(n);
+    const T z_pow_n_plus_one     =  pow(x, static_cast<boost::int64_t>(n + 1));
+    const T n_fact_over_pow_term =  n_fact / z_pow_n_plus_one;
+    const T term0                =  !b_negate ? n_fact_over_pow_term : -n_fact_over_pow_term;
+
+          T one_over_k_fact      =  T(1);
+          T z_pow_k              =  T(1);
+          T k_plus_n_fact        =  boost::math::factorial<T>(n);
+          T k_plus_n_plus_one    =  T(n + 1);
+    const T pg_kn                =  k_plus_n_fact * boost::math::zeta<T>(k_plus_n_plus_one);
+          bool    b_neg_term     =  ((n % 2) == 0);
+          T sum                  =  !b_neg_term ? pg_kn : -pg_kn;
+
+    for(int k = 1; k < max_iteration<T>::value; k++)
+    {
+      k_plus_n_fact   *= k_plus_n_plus_one++;
+      one_over_k_fact /= k;
+      z_pow_k         *= x;
+
+      const T pg = k_plus_n_fact * boost::math::zeta<T>(k_plus_n_plus_one);
+
+      const T term = (pg * z_pow_k) * one_over_k_fact;
+
+      //const INT64 order_check = static_cast<INT64>(term.order() - sum.order());
+
+      //TODO devise a good breaking condition
+      if(k > 500 /*&& (order_check < -ef::tol())*/)
+      {
+        break;
+      }
+
+      b_neg_term = !b_neg_term;
+
+      !b_neg_term ? sum += term : sum -= term;
+    }
+
+    return term0 + sum;
+
+  }
+
+  template<class T, class Policy>
   inline T polygamma_imp(const int n, T x, const Policy &pol)
   {
 //	  std::cout<<typeid(T).name()<<std::endl;
-        return polygamma_atinfinityplus(n,x,pol); //just a test return value
+        if(x < 1)
+            return polygamma_nearzero(n,x,pol);
+        else
+            return polygamma_atinfinityplus(n,x,pol); //just a test return value
   }
 
 
