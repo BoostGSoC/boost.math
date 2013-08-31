@@ -77,7 +77,6 @@ namespace boost { namespace math { namespace detail {
   T polygamma_atinfinityplus(const int n, const T &x, const Policy &pol) // for large values of x such as for x> 400
   {
 
-
      if(n==0)
         return digamma_atinfinityplus(n,x,pol);
 
@@ -109,7 +108,7 @@ namespace boost { namespace math { namespace detail {
        const T term = (  (boost::math::bernoulli_b2n<T>(two_k/2) * two_k_plus_n_minus_one_fact)
                              * (one_over_two_k_fact * one_over_x_pow_two_k_plus_n));
 
-   //    const INT64 order_check = term.order() - sum.order();
+   //    const boost::int64_t order_check = term.order() - sum.order();
 
        if((two_k > static_cast<boost::int32_t>(50)) /*&& (order_check < -ef::tol())*/)
        {
@@ -125,8 +124,87 @@ namespace boost { namespace math { namespace detail {
   }
 
   template<class T, class Policy>
+  T polygamma_attransitionplus(const int n, const T &x, const Policy &pol)
+  {
+  // this doesn't work for digamma either
+
+      // Use Euler-Maclaurin summation.
+
+    // Use N = (0.4 * digits) + (4 * n)
+    static const boost::int64_t prec = static_cast<boost::int64_t>(std::numeric_limits<T>::digits10);
+    static const boost::int64_t d4d  = static_cast<boost::int64_t>(double(0.4) * prec);
+           const boost::int64_t N4dn = static_cast<boost::int64_t>(d4d + 4 * n);
+    static const boost::int64_t n32m = static_cast<boost::int64_t>(std::numeric_limits<boost::int32_t>::max());
+           const boost::int32_t N    = static_cast<boost::int32_t>(std::min(N4dn, n32m));
+           const boost::int32_t m    = n;
+
+    const boost::int64_t minus_m_minus_one = static_cast<boost::int64_t>(static_cast<boost::int32_t>(-m)
+                                                                        - static_cast<boost::int32_t>(1));
+
+    T z                              = x;
+    T sum0                           = T(0);
+    T z_plus_k_pow_minus_m_minus_one = T(0);
+
+    for(boost::int32_t k = 1; k <= N; k++)
+    {
+      z_plus_k_pow_minus_m_minus_one = pow(z, minus_m_minus_one);
+
+      sum0 += z_plus_k_pow_minus_m_minus_one;
+
+      ++z;
+    }
+
+    const T one_over_z_plus_N_pow_minus_m           = pow(z, static_cast<boost::int64_t>(-m));
+    const T one_over_z_plus_N_pow_minus_m_minus_one = one_over_z_plus_N_pow_minus_m / z;
+
+    const T term0 = one_over_z_plus_N_pow_minus_m_minus_one / static_cast<boost::int32_t>(2);
+    const T term1 = one_over_z_plus_N_pow_minus_m           / m;
+
+          T sum1                                      = T(0);
+          T one_over_two_k_fact                       = T(1)/2;
+          boost::int32_t   mk                         = m + 1;
+          T am                                        = T(mk);
+    const T one_over_z_plus_N_squared                 = T(1) / (z * z);
+          T one_over_z_plus_N_pow_minus_m_minus_two_k = one_over_z_plus_N_pow_minus_m * one_over_z_plus_N_squared;
+
+    for(boost::int32_t k = 1; k < max_iteration<T>::value; k++)
+    {
+      const boost::int32_t two_k = 2 * k; // k << 1
+
+      const T term = ((boost::math::bernoulli_b2n<T>(two_k/2) * am) * one_over_two_k_fact) * one_over_z_plus_N_pow_minus_m_minus_two_k;
+
+      /*const boost::int64_t order_check = term.order() - sum1.order();*/
+
+      //TODO Devise a good breaking condition
+
+      if(k > 100 /*&& (order_check < -ef::tol())*/)
+      {
+        break;
+      }
+
+      sum1 += term;
+
+      one_over_two_k_fact /= static_cast<boost::int32_t>(two_k + static_cast<boost::int32_t>(1));
+      one_over_two_k_fact /= static_cast<boost::int32_t>(two_k + static_cast<boost::int32_t>(2));
+
+      am *= static_cast<boost::int32_t>(++mk);
+      am *= static_cast<boost::int32_t>(++mk);
+
+      one_over_z_plus_N_pow_minus_m_minus_two_k *= one_over_z_plus_N_squared;
+    }
+
+    const T pg = (((sum0 + term0) + term1) + sum1) * factorial<T>(static_cast<boost::uint32_t>(m));
+
+    const bool b_negate = (m % 2 == 0);
+
+    return (!b_negate ? pg : -pg);
+  }
+
+  template<class T, class Policy>
   T polygamma_nearzero(const int n, const T &x, const Policy &pol)
   {
+    // not defined for digamma
+
     // Use a series expansion for x near zero which uses poly_gamma(m, 1) which,
     // in turn, uses the Riemann zeta function for integer arguments.
     // http://functions.wolfram.com/GammaBetaErf/PolyGamma2/06/01/03/01/02/
@@ -155,7 +233,7 @@ namespace boost { namespace math { namespace detail {
 
       const T term = (pg * z_pow_k) * one_over_k_fact;
 
-      //const INT64 order_check = static_cast<INT64>(term.order() - sum.order());
+      //const boost::int64_t order_check = static_cast<boost::int64_t>(term.order() - sum.order());
 
       //TODO devise a good breaking condition
       if(k > 500 /*&& (order_check < -ef::tol())*/)
@@ -176,13 +254,15 @@ namespace boost { namespace math { namespace detail {
   inline T polygamma_imp(const int n, T x, const Policy &pol)
   {
 //	  std::cout<<typeid(T).name()<<std::endl;
-        if(x < 1)
+        if(x < 0.5)
             return polygamma_nearzero(n,x,pol);
-        else
+        else if (x > 400)
             return polygamma_atinfinityplus(n,x,pol); //just a test return value
+        else
+            return polygamma_attransitionplus(n,x,pol);
   }
 
 
 } } } // namespace boost::math::detail
 
-#endif // _BOOST_BERNOULLI_B2N_2013_05_30_HPP_
+#endif // __BOOST_POLYGAMMA_2013_07_30_CPP_
