@@ -46,6 +46,7 @@
 #include <boost/math/special_functions/math_fwd.hpp>
 #include <boost/math/special_functions/next.hpp>
 #include <boost/math/special_functions/owens_t.hpp>
+#include <boost/math/special_functions/polygamma.hpp>
 #include <boost/math/special_functions/powm1.hpp>
 #include <boost/math/special_functions/sign.hpp>
 #include <boost/math/special_functions/sin_pi.hpp>
