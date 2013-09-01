@@ -15,7 +15,7 @@
   #include <vector>
   #include <cmath>
   #include <boost/cstdint.hpp>
-  #include <boost/math/special_functions/pow.hpp>
+  #include <boost/math/special_functions/trunc.hpp>
   #include <boost/math/special_functions/zeta.hpp>
   #include <boost/math/policies/policy.hpp>
   #include <boost/static_assert.hpp>
@@ -41,8 +41,12 @@ namespace boost { namespace math { namespace detail {
   template<class T, class Policy>
   T digamma_atinfinityplus(const int n, const T &x, const Policy &pol)
   {
+
+	  BOOST_MATH_STD_USING
+
 	  // calculate a high bernoulli number upfront to make use of cache
-	  boost::math::bernoulli_b2n<T>(300);
+	  unsigned int bernoulli_index = 100;
+	  boost::math::bernoulli_b2n<T>(bernoulli_index);
         T z=x;
         T log_z=T(log(z));
         T one_over_2z= T(1)/(2*z);
@@ -50,6 +54,21 @@ namespace boost { namespace math { namespace detail {
 
         for(int two_k=2; two_k < max_iteration<T>::value; two_k+=2)
         {
+                std::cout<<"two_k:"<<two_k<<std::endl;
+                if(two_k/2 > bernoulli_index)
+                {
+                    try
+                    {
+                        int temp = bernoulli_index * 1.5;
+                        std::cout<<"temp:"<<temp<<std::endl;
+                        boost::math::bernoulli_b2n<T>(temp);
+                        bernoulli_index = temp;
+                    }
+                    catch(...)
+                    {
+                        std::cout<<"caught\n";
+                    }
+                }
                 T term=T(1);
                 T one_over_two_k=T(1)/two_k;
                 T z_pow_two_k=pow(z,static_cast<boost::int32_t>(two_k));
@@ -58,14 +77,25 @@ namespace boost { namespace math { namespace detail {
 
                 term = bernoulli_term * one_over_two_k * one_over_z_pow_two_k;
 
-                sum+=term;
+                if(term == 0 ) continue;
 
-		// TODO need a way to decide when to break
-                if((two_k > static_cast<boost::int32_t>(500)) /*&& (order_check < -ef::tol())*/)
+                sum += term;
+
+                T term_base_10_exp = term < 0 ? -term: term;
+                T sum_base_10_exp  = sum < 0 ? -sum: sum;
+          //      std::cout<<"term:"<<term_base_10_exp<<"\tsum:"<<sum_base_10_exp<<std::endl;
+                term_base_10_exp   = log10(term_base_10_exp);
+                sum_base_10_exp    = log10(sum_base_10_exp);
+            //    std::cout<<"term:"<<term_base_10_exp<<"\tsum:"<<sum_base_10_exp<<std::endl;
+                long int order_check =  boost::math::ltrunc(term_base_10_exp)-boost::math::ltrunc(sum_base_10_exp);
+                long int tol         =  std::numeric_limits<T>::digits10;
+              //  std::cout<<"order_check:"<<order_check<<std::endl;
+                //std::cout<<"tol:"<<tol<<std::endl;
+
+                if((two_k > static_cast<boost::int32_t>(50)) && (order_check < -tol))
                 {
                     break;
                 }
-
         }
 
         T answer = log_z - one_over_2z -sum;
@@ -76,11 +106,10 @@ namespace boost { namespace math { namespace detail {
   template<class T, class Policy>
   T polygamma_atinfinityplus(const int n, const T &x, const Policy &pol) // for large values of x such as for x> 400
   {
+     BOOST_MATH_STD_USING
 
      if(n==0)
         return digamma_atinfinityplus(n,x,pol);
-
-     BOOST_MATH_STD_USING
 
      const bool b_negate = (n % 2 == 0);
 
@@ -98,7 +127,7 @@ namespace boost { namespace math { namespace detail {
                                                   * (one_over_two_k_fact * one_over_x_pow_two_k_plus_n));
 
      // Perform the Bernoulli series expansion.
-     for(boost::int32_t two_k = 4; two_k < max_iteration<T>::value; two_k += 2)
+        for(boost::int32_t two_k = 4; two_k < max_iteration<T>::value; two_k += 2)
      {
        one_over_x_pow_two_k_plus_n *= one_over_z2;
        two_k_plus_n_minus_one_fact *= ++two_k_plus_n_minus_one;
@@ -110,7 +139,7 @@ namespace boost { namespace math { namespace detail {
 
    //    const boost::int64_t order_check = term.order() - sum.order();
 
-       if((two_k > static_cast<boost::int32_t>(50)) /*&& (order_check < -ef::tol())*/)
+       if((two_k > static_cast<boost::int32_t>(500)) /*&& (order_check < -ef::tol())*/)
        {
          break;
        }
@@ -131,6 +160,7 @@ namespace boost { namespace math { namespace detail {
       // Use Euler-Maclaurin summation.
 
     // Use N = (0.4 * digits) + (4 * n)
+    BOOST_MATH_STD_USING
     static const boost::int64_t prec = static_cast<boost::int64_t>(std::numeric_limits<T>::digits10);
     static const boost::int64_t d4d  = static_cast<boost::int64_t>(double(0.4) * prec);
            const boost::int64_t N4dn = static_cast<boost::int64_t>(d4d + 4 * n);
@@ -177,7 +207,7 @@ namespace boost { namespace math { namespace detail {
 
       //TODO Devise a good breaking condition
 
-      if(k > 100 /*&& (order_check < -ef::tol())*/)
+      if(k > 80 /*&& (order_check < -ef::tol())*/)
       {
         break;
       }
@@ -203,6 +233,7 @@ namespace boost { namespace math { namespace detail {
   template<class T, class Policy>
   T polygamma_nearzero(const int n, const T &x, const Policy &pol)
   {
+    BOOST_MATH_STD_USING
     // not defined for digamma
 
     // Use a series expansion for x near zero which uses poly_gamma(m, 1) which,
