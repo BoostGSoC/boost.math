@@ -41,68 +41,72 @@ namespace boost { namespace math { namespace detail {
   template<class T, class Policy>
   T digamma_atinfinityplus(const int n, const T &x, const Policy &pol)
   {
+    BOOST_MATH_STD_USING
 
-	  BOOST_MATH_STD_USING
+    // calculate a high bernoulli number upfront to make use of cache
+    unsigned int bernoulli_index = 100;
+    boost::math::bernoulli_b2n<T>(bernoulli_index);
 
-	  // calculate a high bernoulli number upfront to make use of cache
-	    unsigned int bernoulli_index = 100;
-	    boost::math::bernoulli_b2n<T>(bernoulli_index);
-        T z=x;
-        T log_z=T(log(z));
-        T one_over_2z= T(1)/(2*z);
-        T sum=T(0);
+    T z=x;
+    T log_z=T(log(z));
+    T one_over_2z= T(1)/(2*z);
+    T sum=T(0);
 
-        for(int two_k=2; two_k < max_iteration<T>::value; two_k+=2)
-        {
-                if(two_k/2 > bernoulli_index)
-                {
-                    try
-                    {
-                        int temp = bernoulli_index * 1.5;
-                        boost::math::bernoulli_b2n<T>(temp);
-                        bernoulli_index = temp;
-                    }
-                    catch(...)
-                    {
-                        break;
-                    }
-                }
-                T term=T(1);
-                T one_over_two_k=T(1)/two_k;
-                T z_pow_two_k=pow(z,static_cast<boost::int32_t>(two_k));
-                T one_over_z_pow_two_k = T(1)/z_pow_two_k;
-                T bernoulli_term= boost::math::bernoulli_b2n<T>(two_k/2);
+    for(int two_k=2; two_k < max_iteration<T>::value; two_k+=2)
+    {
+      if(two_k/2 > static_cast<boost::int32_t>(bernoulli_index))
+      {
+          try
+          {
+              int temp = static_cast<int>(bernoulli_index * 1.5F);
+              boost::math::bernoulli_b2n<T>(temp);
+              bernoulli_index = temp;
+          }
+          catch(...)
+          {
+              break;
+          }
+      }
 
-                term = bernoulli_term * one_over_two_k * one_over_z_pow_two_k;
+      T term=T(1);
+      T one_over_two_k=T(1)/two_k;
+      T z_pow_two_k=pow(z,static_cast<boost::int32_t>(two_k));
+      T one_over_z_pow_two_k = T(1)/z_pow_two_k;
+      T bernoulli_term= boost::math::bernoulli_b2n<T>(two_k/2);
 
-                if(term == 0 ) continue;
+      term = bernoulli_term * one_over_two_k * one_over_z_pow_two_k;
 
-                sum += term;
+      if(term == 0 )
+      {
+        continue;
+      }
 
-                T term_base_10_exp = term < 0 ? -term: term;
-                T sum_base_10_exp  = sum < 0 ? -sum: sum;
+      sum += term;
 
-                int ll;
+      T term_base_10_exp = term < 0 ? -term: term;
+      T sum_base_10_exp  = sum < 0 ? -sum: sum;
 
-                T significand=frexp(term_base_10_exp,&ll);
-                term_base_10_exp=ll*0.303;
+      int ll;
 
-                significand=frexp(sum_base_10_exp,&ll);
-                sum_base_10_exp=ll*0.303;
+      T significand=frexp(term_base_10_exp,&ll);
+      term_base_10_exp=ll*0.303;
 
-                long int order_check =  boost::math::ltrunc(term_base_10_exp)-boost::math::ltrunc(sum_base_10_exp);
-                long int tol         =  std::numeric_limits<T>::digits10;
+      significand=frexp(sum_base_10_exp,&ll);
+      sum_base_10_exp=ll*0.303;
+
+      long int order_check =  boost::math::ltrunc(term_base_10_exp)-boost::math::ltrunc(sum_base_10_exp);
+      long int tol         =  std::numeric_limits<T>::digits10;
 
 
-                if((two_k > static_cast<boost::int32_t>(50)) && (order_check < -tol))
-                {
-                    break;
-                }
-        }
+      if((two_k > static_cast<boost::int32_t>(50)) && (order_check < -tol))
+      {
+          break;
+      }
+    }
 
-        T answer = log_z - one_over_2z -sum;
+    T answer = log_z - one_over_2z -sum;
 
-        return answer;
+    return answer;
   }
 
   template<class T, class Policy>
@@ -134,11 +138,11 @@ namespace boost { namespace math { namespace detail {
      // Perform the Bernoulli series expansion.
      for(boost::int32_t two_k = 4; two_k < max_iteration<T>::value; two_k += 2)
      {
-        if(two_k/2 > bernoulli_index)
+        if((two_k / 2) > static_cast<boost::int32_t>(bernoulli_index))
         {
            try
            {
-              int temp = bernoulli_index * 1.5;
+              int temp = static_cast<int>(bernoulli_index * 1.5F);
               boost::math::bernoulli_b2n<T>(temp);
               bernoulli_index = temp;
             }
@@ -147,6 +151,7 @@ namespace boost { namespace math { namespace detail {
                break;
             }
         }
+
         one_over_x_pow_two_k_plus_n *= one_over_z2;
         two_k_plus_n_minus_one_fact *= ++two_k_plus_n_minus_one;
         two_k_plus_n_minus_one_fact *= ++two_k_plus_n_minus_one;
@@ -157,21 +162,21 @@ namespace boost { namespace math { namespace detail {
 
         if(term == 0 ) continue;
 
-	    sum += term;
+      sum += term;
 
-	    T term_base_10_exp = term < 0 ? -term: term;
-	    T sum_base_10_exp  = sum < 0 ? -sum: sum;
+      T term_base_10_exp = term < 0 ? -term: term;
+      T sum_base_10_exp  = sum < 0 ? -sum: sum;
 
-	    int ll;
+      int ll;
 
-	    T significand=frexp(term_base_10_exp,&ll);
-	    term_base_10_exp=ll*0.303;
+      T significand=frexp(term_base_10_exp, &ll);
+      term_base_10_exp=ll * 0.303;
 
-	    significand=frexp(sum_base_10_exp,&ll);
-	    sum_base_10_exp=ll*0.303;
+      significand=frexp(sum_base_10_exp,&ll);
+      sum_base_10_exp = ll*0.303;
 
-	    long int order_check =  boost::math::ltrunc(term_base_10_exp)-boost::math::ltrunc(sum_base_10_exp);
-	    long int tol         =  std::numeric_limits<T>::digits10;
+      long int order_check =  boost::math::ltrunc(term_base_10_exp)-boost::math::ltrunc(sum_base_10_exp);
+      long int tol         =  std::numeric_limits<T>::digits10;
 
 
         if((two_k > static_cast<boost::int32_t>(50)) && (order_check < -tol))
@@ -318,7 +323,7 @@ namespace boost { namespace math { namespace detail {
   template<class T, class Policy>
   inline T polygamma_imp(const int n, T x, const Policy &pol)
   {
-//	  std::cout<<typeid(T).name()<<std::endl;
+//    std::cout<<typeid(T).name()<<std::endl;
         if(x < 0.5)
             return polygamma_nearzero(n,x,pol);
         else if (x > 400)
