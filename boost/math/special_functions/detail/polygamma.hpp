@@ -45,8 +45,8 @@ namespace boost { namespace math { namespace detail {
 	  BOOST_MATH_STD_USING
 
 	  // calculate a high bernoulli number upfront to make use of cache
-	  unsigned int bernoulli_index = 100;
-	  boost::math::bernoulli_b2n<T>(bernoulli_index);
+	    unsigned int bernoulli_index = 100;
+	    boost::math::bernoulli_b2n<T>(bernoulli_index);
         T z=x;
         T log_z=T(log(z));
         T one_over_2z= T(1)/(2*z);
@@ -113,6 +113,9 @@ namespace boost { namespace math { namespace detail {
      if(n==0)
         return digamma_atinfinityplus(n,x,pol);
 
+     unsigned int bernoulli_index = 100;
+     boost::math::bernoulli_b2n<T>(bernoulli_index);
+
      const bool b_negate = (n % 2 == 0);
 
      const T n_minus_one_fact            = boost::math::factorial<T>(n - 1);
@@ -129,24 +132,53 @@ namespace boost { namespace math { namespace detail {
                                                   * (one_over_two_k_fact * one_over_x_pow_two_k_plus_n));
 
      // Perform the Bernoulli series expansion.
-        for(boost::int32_t two_k = 4; two_k < max_iteration<T>::value; two_k += 2)
+     for(boost::int32_t two_k = 4; two_k < max_iteration<T>::value; two_k += 2)
      {
-       one_over_x_pow_two_k_plus_n *= one_over_z2;
-       two_k_plus_n_minus_one_fact *= ++two_k_plus_n_minus_one;
-       two_k_plus_n_minus_one_fact *= ++two_k_plus_n_minus_one;
-       one_over_two_k_fact         /= static_cast<boost::int32_t>(two_k * static_cast<boost::int32_t>(two_k - static_cast<boost::int32_t>(1)));
+        if(two_k/2 > bernoulli_index)
+        {
+           try
+           {
+              int temp = bernoulli_index * 1.5;
+              boost::math::bernoulli_b2n<T>(temp);
+              bernoulli_index = temp;
+            }
+            catch(...)
+            {
+               break;
+            }
+        }
+        one_over_x_pow_two_k_plus_n *= one_over_z2;
+        two_k_plus_n_minus_one_fact *= ++two_k_plus_n_minus_one;
+        two_k_plus_n_minus_one_fact *= ++two_k_plus_n_minus_one;
+        one_over_two_k_fact         /= static_cast<boost::int32_t>(two_k * static_cast<boost::int32_t>(two_k - static_cast<boost::int32_t>(1)));
 
-       const T term = (  (boost::math::bernoulli_b2n<T>(two_k/2) * two_k_plus_n_minus_one_fact)
-                             * (one_over_two_k_fact * one_over_x_pow_two_k_plus_n));
+        const T term = (  (boost::math::bernoulli_b2n<T>(two_k/2) * two_k_plus_n_minus_one_fact)
+                              * (one_over_two_k_fact * one_over_x_pow_two_k_plus_n));
 
-   //    const boost::int64_t order_check = term.order() - sum.order();
+        if(term == 0 ) continue;
 
-       if((two_k > static_cast<boost::int32_t>(500)) /*&& (order_check < -ef::tol())*/)
-       {
-         break;
-       }
+	    sum += term;
 
-       sum += term;
+	    T term_base_10_exp = term < 0 ? -term: term;
+	    T sum_base_10_exp  = sum < 0 ? -sum: sum;
+
+	    int ll;
+
+	    T significand=frexp(term_base_10_exp,&ll);
+	    term_base_10_exp=ll*0.303;
+
+	    significand=frexp(sum_base_10_exp,&ll);
+	    sum_base_10_exp=ll*0.303;
+
+	    long int order_check =  boost::math::ltrunc(term_base_10_exp)-boost::math::ltrunc(sum_base_10_exp);
+	    long int tol         =  std::numeric_limits<T>::digits10;
+
+
+        if((two_k > static_cast<boost::int32_t>(50)) && (order_check < -tol))
+        {
+          break;
+        }
+
      }
 
      sum += ((((n_minus_one_fact * (nn + (x * static_cast<boost::int32_t>(2)))) * one_over_z_pow_n) * one_over_z) / 2);
