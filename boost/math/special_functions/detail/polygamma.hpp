@@ -54,19 +54,17 @@ namespace boost { namespace math { namespace detail {
 
         for(int two_k=2; two_k < max_iteration<T>::value; two_k+=2)
         {
-                std::cout<<"two_k:"<<two_k<<std::endl;
                 if(two_k/2 > bernoulli_index)
                 {
                     try
                     {
                         int temp = bernoulli_index * 1.5;
-                        std::cout<<"temp:"<<temp<<std::endl;
                         boost::math::bernoulli_b2n<T>(temp);
                         bernoulli_index = temp;
                     }
                     catch(...)
                     {
-                        std::cout<<"caught\n";
+                        break;
                     }
                 }
                 T term=T(1);
@@ -83,14 +81,18 @@ namespace boost { namespace math { namespace detail {
 
                 T term_base_10_exp = term < 0 ? -term: term;
                 T sum_base_10_exp  = sum < 0 ? -sum: sum;
-          //      std::cout<<"term:"<<term_base_10_exp<<"\tsum:"<<sum_base_10_exp<<std::endl;
-                term_base_10_exp   = log10(term_base_10_exp);
-                sum_base_10_exp    = log10(sum_base_10_exp);
-            //    std::cout<<"term:"<<term_base_10_exp<<"\tsum:"<<sum_base_10_exp<<std::endl;
+
+                int ll;
+
+                T significand=frexp(term_base_10_exp,&ll);
+                term_base_10_exp=ll*0.303;
+
+                significand=frexp(sum_base_10_exp,&ll);
+                sum_base_10_exp=ll*0.303;
+
                 long int order_check =  boost::math::ltrunc(term_base_10_exp)-boost::math::ltrunc(sum_base_10_exp);
                 long int tol         =  std::numeric_limits<T>::digits10;
-              //  std::cout<<"order_check:"<<order_check<<std::endl;
-                //std::cout<<"tol:"<<tol<<std::endl;
+
 
                 if((two_k > static_cast<boost::int32_t>(50)) && (order_check < -tol))
                 {
