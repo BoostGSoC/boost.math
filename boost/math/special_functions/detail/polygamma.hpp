@@ -38,6 +38,54 @@ namespace boost { namespace math { namespace detail {
      static const int value=1000;
   };
 
+  template<class T>
+  bool factorial_overflow(const int n)
+  {
+    // Use Stirling's approximation to check if n! would overflow when data type is T
+    static const long int max_precision = std::numeric_limits<T>::max_exponent10;
+
+    T nn                   = T(n);
+    T log_n                = log(nn);
+    T n_log_n              = n * log_n;
+    T n_log_n_minus_n      = n_log_n - n;
+    T base_10              = n_log_n_minus_n/log(10);
+    long int base_10_ceil  = boost::math::ltrunc(base_10) + 1;
+
+    // since nlogn - n < log(n!) by a small margin, we add 10 as safety measure
+    //std::cout<<"base 10 exponent of "<<n<<"!: "<<base_10_ceil<<std::endl;
+    return (base_10_ceil + 10 > max_precision )? 1 : 0 ;
+  }
+
+  template<class T>
+  int possible_factorial_overflow_index()
+  {
+    // we use binary search to determine a good approximation for an index that might overflow
+
+    int upper_limit = max_iteration<T>::value;
+    int lower_limit = 8;
+
+    if(factorial_overflow<T>(upper_limit) == 0)
+    {
+      return upper_limit;
+    }
+
+    while(upper_limit > (lower_limit + 4))
+    {
+      const int mid = (upper_limit + lower_limit) / 2;
+
+      if(factorial_overflow<T>(mid) == 0)
+      {
+        lower_limit = mid;
+      }
+      else
+      {
+        upper_limit = mid;
+      }
+    }
+
+    return lower_limit;
+  }
+
   template<class T, class Policy>
   T digamma_atinfinityplus(const int n, const T &x, const Policy &pol)
   {
@@ -293,6 +341,8 @@ namespace boost { namespace math { namespace detail {
           bool    b_neg_term     =  ((n % 2) == 0);
           T sum                  =  !b_neg_term ? pg_kn : -pg_kn;
 
+    const int break_value        =  possible_factorial_overflow_index<T>() - n -1;
+
     for(int k = 1; k < max_iteration<T>::value; k++)
     {
       k_plus_n_fact   *= k_plus_n_plus_one++;
@@ -306,7 +356,7 @@ namespace boost { namespace math { namespace detail {
       //const boost::int64_t order_check = static_cast<boost::int64_t>(term.order() - sum.order());
 
       //TODO devise a good breaking condition
-      if(k > 500 /*&& (order_check < -ef::tol())*/)
+      if(k > break_value /*&& (order_check < -ef::tol())*/)
       {
         break;
       }
