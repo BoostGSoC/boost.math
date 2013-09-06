@@ -35,7 +35,7 @@ namespace boost { namespace math { namespace detail {
   struct max_iteration
   {
      //TODO Derive a suitable formula based on precision of T
-     static const int value=1000;
+     static const int value=2500;
   };
 
   template<class T>
@@ -165,6 +165,7 @@ namespace boost { namespace math { namespace detail {
      if(n==0)
         return digamma_atinfinityplus(n,x,pol);
 
+//TODO try calculating for bernoulli_index= max_iteration, if error then set bernoulli_index=100
      unsigned int bernoulli_index = 100;
      boost::math::bernoulli_b2n<T>(bernoulli_index);
 
@@ -190,7 +191,8 @@ namespace boost { namespace math { namespace detail {
         {
            try
            {
-              int temp = static_cast<int>(bernoulli_index * 1.5F);
+              //TODO the multiplication factor should depend upon T, small precision, smaller multiplication factor
+              int temp = static_cast<int>(bernoulli_index * 2.0F);
               boost::math::bernoulli_b2n<T>(temp);
               bernoulli_index = temp;
             }
