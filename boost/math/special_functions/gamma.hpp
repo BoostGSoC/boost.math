@@ -158,8 +158,8 @@ T gamma_imp_bernoulli(T x, const Policy& pol)
          return policies::raise_pole_error<T>(function, "Evaluation of tgamma at a negative integer %1%.", x, pol);
       while(x<0)
       {
-		result/=x;
-		x+=1;
+    result/=x;
+    x+=1;
       }
   }
 
@@ -204,15 +204,15 @@ T gamma_imp_bernoulli(T x, const Policy& pol)
   // Rescale the result using downward recursion if necessary.
   if(n_recur)
   {
-	  // We need to divide by every x+k in the range [x, x+n_recur), we save
-	  // division by x till last, as we may have x < 1 which could cause
-	  // spurious overflow if we divided by that first.
-	  for(boost::int32_t k = static_cast<boost::int32_t>(1); k < n_recur; k++)
-	  {
-		  gamma_value /= (original_x + k);
-	  }
+    // We need to divide by every x+k in the range [x, x+n_recur), we save
+    // division by x till last, as we may have x < 1 which could cause
+    // spurious overflow if we divided by that first.
+    for(boost::int32_t k = static_cast<boost::int32_t>(1); k < n_recur; k++)
+    {
+      gamma_value /= (original_x + k);
+    }
 
-	  gamma_value/= original_x;
+    gamma_value/= original_x;
   }
   // Return the result, accounting for possible negative arguments.
   //return ((!b_neg) ? gamma_value : -boost::math::constants::pi<T>() / (original_x * gamma_value * sin(boost::math::constants::pi<T>() * original_x)));
@@ -226,10 +226,10 @@ T lgamma_imp_bernoulli(T z, const Policy& pol)
 
   if(z<min_arg_for_recursion)
   {
-	T temp=gamma_imp_bernoulli(z,pol);
-	if(temp < 0)
-		temp=-1*temp;
-	return log(temp);
+  T temp=gamma_imp_bernoulli(z,pol);
+  if(temp < 0)
+    temp=-1*temp;
+  return log(temp);
   }
 
   T xx(z);
@@ -485,95 +485,17 @@ inline T lower_gamma_series(T a, T z, const Policy& pol, T init_value = 0)
 // sums added together:
 //
 template <class T, class Policy>
-T gamma_imp(T z, const Policy& pol, const lanczos::undefined_lanczos& l)
+T gamma_imp(T z, const Policy& pol, const lanczos::undefined_lanczos&)
 {
-   return gamma_imp_bernoulli(z,pol);
-/*   static const char* function = "boost::math::tgamma<%1%>(%1%)";
-   BOOST_MATH_STD_USING
-   if((z <= 0) && (floor(z) == z))
-      return policies::raise_pole_error<T>(function, "Evaluation of tgamma at a negative integer %1%.", z, pol);
-   if(z <= -20)
-   {
-      T result = gamma_imp(T(-z), pol, l) * sinpx(z);
-      if((fabs(result) < 1) && (tools::max_value<T>() * fabs(result) < boost::math::constants::pi<T>()))
-         return policies::raise_overflow_error<T>(function, "Result of tgamma is too large to represent.", pol);
-      result = -boost::math::constants::pi<T>() / result;
-      if(result == 0)
-         return policies::raise_underflow_error<T>(function, "Result of tgamma is too small to represent.", pol);
-      if((boost::math::fpclassify)(result) == (int)FP_SUBNORMAL)
-         return policies::raise_denorm_error<T>(function, "Result of tgamma is denormalized.", result, pol);
-      return result;
-   }
-   //
-   // The upper gamma fraction is *very* slow for z < 6, actually it's very
-   // slow to converge everywhere but recursing until z > 6 gets rid of the
-   // worst of it's behaviour.
-   //
-   T prefix = 1;
-   while(z < 6)
-   {
-      prefix /= z;
-      z += 1;
-   }
-   BOOST_MATH_INSTRUMENT_CODE(prefix);
-   if((floor(z) == z) && (z < max_factorial<T>::value))
-   {
-      prefix *= unchecked_factorial<T>(itrunc(z, pol) - 1);
-   }
-   else
-   {
-      prefix = prefix * pow(z / boost::math::constants::e<T>(), z);
-      BOOST_MATH_INSTRUMENT_CODE(prefix);
-      T sum = detail::lower_gamma_series(z, z, pol) / z;
-      BOOST_MATH_INSTRUMENT_CODE(sum);
-      sum += detail::upper_gamma_fraction(z, z, ::boost::math::policies::get_epsilon<T, Policy>());
-      BOOST_MATH_INSTRUMENT_CODE(sum);
-      if(fabs(tools::max_value<T>() / prefix) < fabs(sum))
-         return policies::raise_overflow_error<T>(function, "Result of tgamma is too large to represent.", pol);
-      BOOST_MATH_INSTRUMENT_CODE((sum * prefix));
-      return sum * prefix;
-   }
-   return prefix;
-   */
+  return gamma_imp_bernoulli(z, pol);
 }
 
 template <class T, class Policy>
-T lgamma_imp(T z, const Policy& pol, const lanczos::undefined_lanczos& l, int*sign)
+T lgamma_imp(T z, const Policy& pol, const lanczos::undefined_lanczos&, int*)
 {
   return lgamma_imp_bernoulli(z,pol);
-  /* BOOST_MATH_STD_USING
-
-   static const char* function = "boost::math::lgamma<%1%>(%1%)";
-   T result = 0;
-   int sresult = 1;
-   if(z <= 0)
-   {
-      if(floor(z) == z)
-         return policies::raise_pole_error<T>(function, "Evaluation of tgamma at a negative integer %1%.", z, pol);
-      T t = detail::sinpx(z);
-      z = -z;
-      if(t < 0)
-      {
-         t = -t;
-      }
-      else
-      {
-         sresult = -sresult;
-      }
-      result = log(boost::math::constants::pi<T>()) - lgamma_imp(z, pol, l, 0) - log(t);
-   }
-   else if((z != 1) && (z != 2))
-   {
-      T limit = (std::max)(T(z+1), T(10));
-      T prefix = z * log(limit) - limit;
-      T sum = detail::lower_gamma_series(z, limit, pol) / z;
-      sum += detail::upper_gamma_fraction(z, limit, ::boost::math::policies::get_epsilon<T, Policy>());
-      result = log(sum) + prefix;
-   }
-   if(sign)
-      *sign = sresult;
-   return result;*/
 }
+
 //
 // This helper calculates tgamma(dz+1)-1 without cancellation errors,
 // used by the upper incomplete gamma with z < 1:

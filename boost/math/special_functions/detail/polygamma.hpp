@@ -80,7 +80,7 @@
   }
 
   template<class T, class Policy>
-  T digamma_atinfinityplus(const int n, const T &x, const Policy &pol)
+  T digamma_atinfinityplus(const int, const T &x, const Policy&)
   {
     BOOST_MATH_STD_USING
 
@@ -127,13 +127,13 @@
       T term_base_10_exp = ((term < 0) ? -term : term);
       T sum_base_10_exp  = ((sum  < 0) ? -sum  : sum);
 
-      int ll;
+      int exponent_value;
 
-      T significand = frexp(term_base_10_exp, &ll);
-      term_base_10_exp = ll * 0.303F;
+      static_cast<void>(frexp(term_base_10_exp, &exponent_value));
+      term_base_10_exp = T(exponent_value) * 0.303F;
 
-      significand = frexp(sum_base_10_exp, &ll);
-      sum_base_10_exp = ll * 0.303F;
+      static_cast<void>(frexp(sum_base_10_exp, &exponent_value));
+      sum_base_10_exp = T(exponent_value) * 0.303F;
 
       long int order_check =  boost::math::ltrunc(term_base_10_exp) - boost::math::ltrunc(sum_base_10_exp);
       long int tol         =  std::numeric_limits<T>::digits10;
@@ -149,7 +149,7 @@
   }
 
   template<class T, class Policy>
-  T polygamma_atinfinityplus(const int n, const T &x, const Policy &pol) // for large values of x such as for x> 400
+  T polygamma_atinfinityplus(const int n, const T& x, const Policy& pol) // for large values of x such as for x> 400
   {
      BOOST_MATH_STD_USING
 
@@ -213,13 +213,13 @@
         T term_base_10_exp = ((term < 0) ? -term : term);
         T sum_base_10_exp  = ((sum  < 0) ? -sum  : sum);
 
-        int ll;
+        int exponent_value;
 
-        T significand = frexp(term_base_10_exp, &ll);
-        term_base_10_exp = ll * 0.303F;
+        static_cast<void>(frexp(term_base_10_exp, &exponent_value));
+        term_base_10_exp = T(exponent_value) * 0.303F;
 
-        significand = frexp(sum_base_10_exp, &ll);
-        sum_base_10_exp = ll * 0.303F;
+        static_cast<void>(frexp(sum_base_10_exp, &exponent_value));
+        sum_base_10_exp = T(exponent_value) * 0.303F;
 
         long int order_check =  boost::math::ltrunc(term_base_10_exp) - boost::math::ltrunc(sum_base_10_exp);
         long int tol         =  std::numeric_limits<T>::digits10;
@@ -236,7 +236,7 @@
   }
 
   template<class T, class Policy>
-  T polygamma_attransitionplus(const int n, const T &x, const Policy &pol)
+  T polygamma_attransitionplus(const int n, const T& x, const Policy&)
   {
     // this doesn't work for digamma either
 
@@ -284,13 +284,13 @@
       T term_base_10_exp = ((term < 0) ? -term : term);
       T sum_base_10_exp  = ((sum1 < 0) ? -sum1 : sum1);
 
-      int ll;
+      int exponent_value;
 
-      T significand = frexp(term_base_10_exp, &ll);
-      term_base_10_exp = ll * 0.303F;
+      static_cast<void>(frexp(term_base_10_exp, &exponent_value));
+      term_base_10_exp = T(exponent_value) * 0.303F;
 
-      significand = frexp(sum_base_10_exp, &ll);
-      sum_base_10_exp = ll * 0.303F;
+      static_cast<void>(frexp(sum_base_10_exp, &exponent_value));
+      sum_base_10_exp = T(exponent_value) * 0.303F;
 
       long int order_check =  boost::math::ltrunc(term_base_10_exp) - boost::math::ltrunc(sum_base_10_exp);
       long int tol         =  std::numeric_limits<T>::digits10;
@@ -321,7 +321,7 @@
   }
 
   template<class T, class Policy>
-  T polygamma_nearzero(const int n, const T &x, const Policy &pol)
+  T polygamma_nearzero(const int n, const T& x, const Policy&)
   {
     BOOST_MATH_STD_USING
     // not defined for digamma
@@ -344,8 +344,6 @@
           bool    b_neg_term     =  ((n % 2) == 0);
           T sum                  =  ((!b_neg_term) ? pg_kn : -pg_kn);
 
-    const int break_value        =  possible_factorial_overflow_index<T>() - (n + 1);
-
     for(int k = 1; k < max_iteration<T>::value; k++)
     {
       k_plus_n_fact   *= k_plus_n_plus_one++;
@@ -359,13 +357,13 @@
       T term_base_10_exp = ((term < 0) ? -term : term);
       T sum_base_10_exp  = ((sum  < 0) ? -sum  : sum);
 
-      int ll;
+      int exponent_value;
 
-      T significand = frexp(term_base_10_exp, &ll);
-      term_base_10_exp = ll * 0.303F;
+      static_cast<void>(frexp(term_base_10_exp, &exponent_value));
+      term_base_10_exp = T(exponent_value) * 0.303F;
 
-      significand = frexp(sum_base_10_exp, &ll);
-      sum_base_10_exp = ll * 0.303F;
+      static_cast<void>(frexp(sum_base_10_exp, &exponent_value));
+      sum_base_10_exp = T(exponent_value) * 0.303F;
 
       long int order_check =  boost::math::ltrunc(term_base_10_exp) - boost::math::ltrunc(sum_base_10_exp);
       long int tol         =  std::numeric_limits<T>::digits10;
