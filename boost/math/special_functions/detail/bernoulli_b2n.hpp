@@ -146,7 +146,7 @@
   inline T unchecked_bernoulli_b2n(size_t n);
 
   template<class T,class TypeIterator,class Policy>
-  inline void tangent(TypeIterator tangent_numbers,const int &m, T /*z*/, Policy &pol)
+  inline void tangent(TypeIterator tangent_numbers,const int &m, T , Policy&)
   {
     // TBD: Initialize this before main().
     static size_t min_overflow_index = static_cast<size_t>(possible_overflow_index<T>());
@@ -233,7 +233,7 @@
 
     for(size_t i = 0; i < number_of_bernoullis_bn; i++)
     {
-      T b(((i + start_index) * 2));
+      T b((T(i + start_index) * 2));
 
       b  = b / (power_two * (power_two - 1));
       b *= tangent_numbers[i+start_index];
