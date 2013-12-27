@@ -46,7 +46,7 @@ OutputIterator tangent_tn_imp(OutputIterator out_it,
       tangent_numbers[k] = (k - 1) * tangent_numbers[k - 1];
    }
 
-   for(int k = 2; k < m; k++)
+   for(int k = 2; k < m; ++k)
    {
       for(int j = k; j < m; ++j)
       {
@@ -610,25 +610,30 @@ OutputIterator bernoulli_b2n_imp(OutputIterator out_it,
       return out_it;
    }
 
+   if(number_of_bernoullis_b2n == 0)
+   {
+      return out_it;
+   }
+
    const bool index_does_overflow = detail::bernouli_impl_index_does_overflow<T>(start_index + number_of_bernoullis_b2n, tag);
 
    if(index_does_overflow)
    {
       policies::raise_domain_error<T>("boost::math::bernoulli<%1%>", "The requested Bernoulli index overflows the floating-point range", T(start_index + number_of_bernoullis_b2n), pol);
+
+      return out_it;
    }
-   else
+
+   BOOST_ASSERT_MSG((start_index + number_of_bernoullis_b2n) < entries_in_bernoulli_b2n_table_type::count,
+                    "The requested Bernoulli index overflows the floating-point range");
+
+   // Generate the B2n's from the tabulated values that include
+   // entries all the way up to overflow of the floating-point.
+   for(int i = start_index; i < (start_index + number_of_bernoullis_b2n); ++i)
    {
-      BOOST_ASSERT_MSG((start_index + number_of_bernoullis_b2n) < entries_in_bernoulli_b2n_table_type::count,
-                       "The requested Bernoulli index overflows the floating-point range");
+      *out_it = unchecked_bernoulli_b2n_imp<T>(i, tag);
 
-      // Generate the B2n's from the tabulated values that include
-      // entries all the way up to overflow of the floating-point.
-      for(int i = start_index; i < (start_index + number_of_bernoullis_b2n); ++i)
-      {
-         *out_it = unchecked_bernoulli_b2n_imp<T>(i, tag);
-
-         ++out_it;
-      }
+      ++out_it;
    }
 
    return out_it;
@@ -669,12 +674,15 @@ OutputIterator bernoulli_b2n_imp(OutputIterator out_it,
       return out_it;
    }
 
+   if(number_of_bernoullis_b2n == 0)
+   {
+      return out_it;
+   }
+
    if((start_index + number_of_bernoullis_b2n) < entries_in_bernoulli_b2n_table_type::count)
    {
-      // Generate the B2n's from the small number tabulated values.
-      // These tabulated values might not be an exhaustive list
-      // and probably do not include values up through overflow
-      // of the floating-point type.
+      // Generate the B2n's from the small number tabulated values
+      // that are available.
       for(int i = start_index; i < (start_index + number_of_bernoullis_b2n); ++i)
       {
          *out_it = unchecked_bernoulli_b2n_imp<T>(i, tag);
@@ -684,11 +692,9 @@ OutputIterator bernoulli_b2n_imp(OutputIterator out_it,
    }
    else
    {
-      // Generate the B2n's from tangent numbers.
+      // Generate the B2n's from a list of tangent numbers.
 
-      // Begin by generating an entire list of tangent numbers
-      // starting from index 0, running all the way up to twice
-      // the number of the highest index requested plus one.
+      // Begin by generating a list of tangent numbers.
       std::vector<T> tangent_numbers(start_index + number_of_bernoullis_b2n);
 
       detail::tangent_tn_imp<T>(tangent_numbers.begin(),
@@ -696,27 +702,22 @@ OutputIterator bernoulli_b2n_imp(OutputIterator out_it,
                                 static_cast<int>(tangent_numbers.size()),
                                 pol);
 
-      // Extract the Bernoulli 2n numbers from the tangent numbers.
+      // Extract the Bernoulli B2n's from the list of tangent numbers.
       int number_of_bernoullis_b2n_received = 0;
 
-      // Use special treatment for index 0 of the Bernoulli numbers.
-      if((start_index == 0) && (number_of_bernoullis_b2n > 0))
+      // Use special treatment for the zero'th B2n number.
+      if(start_index == 0)
       {
          *out_it = T(1);
 
          ++out_it;
 
          ++number_of_bernoullis_b2n_received;
-
-         if(number_of_bernoullis_b2n == 1)
-         {
-            return out_it;
-         }
       }
 
       T two_pow_two_m = pow(T(2), (start_index + number_of_bernoullis_b2n_received) * 2);
 
-      // Extract the remaining Bernoulli 2n numbers.
+      // Extract the remaining B2n's from the list of tangent numbers.
       for( ; number_of_bernoullis_b2n_received < number_of_bernoullis_b2n; ++number_of_bernoullis_b2n_received)
       {
          int i = start_index + number_of_bernoullis_b2n_received;
@@ -742,7 +743,7 @@ OutputIterator bernoulli_b2n_imp(OutputIterator out_it,
 template<class T>
 inline T unchecked_bernoulli_b2n(int n)
 {
-   typedef mpl::int_<detail::bernoulli_b2n_imp_variant<T>::count> tag_type;
+   typedef mpl::int_<detail::bernoulli_b2n_imp_variant<T>::value> tag_type;
 
    return detail::unchecked_bernoulli_b2n_imp<T>(n, tag_type());
 }
@@ -750,7 +751,7 @@ inline T unchecked_bernoulli_b2n(int n)
 template <class T, class Policy>
 inline T bernoulli_b2n(const int i, const Policy& pol)
 {
-   typedef mpl::int_<detail::bernoulli_b2n_imp_variant<T>::count> tag_type;
+   typedef mpl::int_<detail::bernoulli_b2n_imp_variant<T>::value> tag_type;
 
    T result;
 
