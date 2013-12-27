@@ -8,8 +8,8 @@
 //  Software License, Version 1.0. (See accompanying file
 //  LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef _BOOST_BERNOULLI_B2N_2013_05_30_HPP_
-#define _BOOST_BERNOULLI_B2N_2013_05_30_HPP_
+#ifndef _BOOST_BERNOULLI_2013_05_30_HPP_
+#define _BOOST_BERNOULLI_2013_05_30_HPP_
 
 #include <cmath>
 #include <limits>
@@ -30,12 +30,15 @@ OutputIterator tangent_tn_imp(OutputIterator out_it,
                               int number_of_tangents_tn,
                               const Policy& pol)
 {
-   // See reference "Computing Bernoulli and Tangent Numbers", Richard P. Brent.
-   // See also the book Richard P. Brent and Paul Zimmermann, "Modern Computer Arithmetic",
-   // Cambridge University Press, 2010, 237 pp.
+   // Use a fast computation of tangent numbers from the literature.
+
+   // See "Computing Bernoulli and Tangent Numbers", Richard P. Brent.
+   // See also "Modern Computer Arithmetic", Richard P. Brent and
+   // Paul Zimmermann, Cambridge University Press, 2010, 237 pp.
 
    const int m = number_of_tangents_tn;
 
+   // Compute a list of tangent numbers and store them locally in a container.
    std::vector<T> tangent_numbers(number_of_tangents_tn);
 
    tangent_numbers[0U] = T(0);
@@ -46,11 +49,27 @@ OutputIterator tangent_tn_imp(OutputIterator out_it,
       tangent_numbers[k] = (k - 1) * tangent_numbers[k - 1];
    }
 
+   bool tangent_number_does_overflow = false;
+
+   // Select a value near which the calculation for the next tangent
+   // number might overflow. Here, we select the maximum value of T
+   // divided by the maximum value of int.
+   const T value_tangent_number_might_overflow = boost::math::tools::max_value<T>() / (std::numeric_limits<int>::max)();
+
    for(int k = 2; k < m; ++k)
    {
       for(int j = k; j < m; ++j)
       {
-         tangent_numbers[j] = (tangent_numbers[j - 1] * (j - k)) + (tangent_numbers[j] * (j - k + 2));
+         if(   (tangent_number_does_overflow == false)
+            && (tangent_numbers[j] > value_tangent_number_might_overflow))
+         {
+            // Check for overflow.
+            tangent_number_does_overflow = (   (tangent_numbers[j - 1] > (boost::math::tools::max_value<T>() / (std::max)(j - k, 1)))
+                                            || (tangent_numbers[j]     > (boost::math::tools::max_value<T>() / (j - k + 2))));
+         }
+
+         tangent_numbers[j] = ((!tangent_number_does_overflow) ? (tangent_numbers[j - 1] * (j - k)) + (tangent_numbers[j] * (j - k + 2))
+                                                               : boost::math::tools::max_value<T>());
       }
    }
 
@@ -60,6 +79,9 @@ OutputIterator tangent_tn_imp(OutputIterator out_it,
 
       ++out_it;
    }
+
+   if(tangent_number_does_overflow)
+      *out_it = policies::raise_overflow_error<T>("boost::math::bernoulli_b2n<%1%>(n), encountered in tangent_tn_imp<%1%>(n)", 0, pol);
 
    return out_it;
 }
@@ -506,7 +528,7 @@ inline T unchecked_bernoulli_b2n_imp(const int n, const mpl::int_<3>&)
    return bernoulli_b2n_data[n];
 }
 
-template<class T>
+template <class T>
 inline bool bernouli_impl_index_does_overflow(const int n, const mpl::int_<0>&)
 {
    BOOST_MATH_STD_USING
@@ -539,21 +561,21 @@ inline bool bernouli_impl_index_does_overflow(const int n, const mpl::int_<0>&)
 // using 32-bit float and 64-bit double (IEEE 754 conformant),
 // overflow will occur if the index exceeds the amount allowed
 // in the tables of Bn.
-template<class T>
+template <class T>
 inline bool bernouli_impl_index_does_overflow(const int n, const mpl::int_<1>&)
 {
    // This corresponds to 4-byte float, IEEE 745 conformant.
    return (n >= entries_in_bernoulli_b2n_table<1>::count);
 }
 
-template<class T>
+template <class T>
 inline bool bernouli_impl_index_does_overflow(const int n, const mpl::int_<2>&)
 {
    // This corresponds to 8-byte float, IEEE 745 conformant.
    return (n >= entries_in_bernoulli_b2n_table<2>::count);
 }
 
-template<class T>
+template <class T>
 inline bool bernouli_impl_index_does_overflow(const int n, const mpl::int_<3>&)
 {
    // This corresponds to 16-byte float, IEEE 745 conformant.
@@ -720,11 +742,10 @@ OutputIterator bernoulli_b2n_imp(OutputIterator out_it,
       // Extract the remaining B2n's from the list of tangent numbers.
       for( ; number_of_bernoullis_b2n_received < number_of_bernoullis_b2n; ++number_of_bernoullis_b2n_received)
       {
-         int i = start_index + number_of_bernoullis_b2n_received;
-
+         const int i     = start_index + number_of_bernoullis_b2n_received;
          const int two_i = 2 * i;
 
-         const T b = (tangent_numbers[i] * two_i) / (two_pow_two_m * (two_pow_two_m - 1));
+         const T b = (tangent_numbers[i] / (two_pow_two_m * (two_pow_two_m - 1))) * two_i;
 
          const bool b_neg = ((two_i % 4) == 0);
 
@@ -740,7 +761,7 @@ OutputIterator bernoulli_b2n_imp(OutputIterator out_it,
 
 } // namespace detail
 
-template<class T>
+template <class T>
 inline T unchecked_bernoulli_b2n(int n)
 {
    typedef mpl::int_<detail::bernoulli_b2n_imp_variant<T>::value> tag_type;
@@ -790,4 +811,4 @@ inline OutputIterator bernoulli_b2n(int start_index,
 
 } } // namespace boost::math
 
-#endif // _BOOST_BERNOULLI_B2N_2013_05_30_HPP_
+#endif // _BOOST_BERNOULLI_2013_05_30_HPP_
