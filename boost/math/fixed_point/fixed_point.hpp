@@ -1037,20 +1037,6 @@
       }
     }
 
-/*
-    friend inline negatable acot(const negatable& x)
-    {
-      if(x != x)
-      {
-        return negatable::value_quiet_nan();
-      }
-      else
-      {
-        return atan(1 / x);
-      }
-    }
-*/
-
     friend inline negatable sinh(const negatable& x)
     {
       if(x != x)
@@ -1147,20 +1133,6 @@
         return log((1 + x) / (1 - x)) / 2;
       }
     }
-
-/*
-    friend inline negatable acoth(const negatable& x)
-    {
-      if(x != x)
-      {
-        return negatable::value_quiet_nan();
-      }
-      else
-      {
-        return log((x + 1) / (x - 1)) / 2;
-      }
-    }
-*/
   };
 
   } } // namespace math::fixed_point

@@ -4,7 +4,7 @@
 #include <iostream>
 #include <limits>
 
-#include "fixed_point.hpp"
+#include <boost/math/fixed_point/fixed_point.hpp>
 
 typedef math::fixed_point::negatable<32, -24> fxp;
 
@@ -157,7 +157,6 @@ int main()
   std::cout << "Sinh: "  << '\n' << sinh (fxp(3.14159))  << '\n' << std::sinh(3.14159)       << std::endl;
   std::cout << "Cosh: "  << '\n' << cosh (fxp(3.14159))  << '\n' << std::cosh(3.14159)       << std::endl;
   std::cout << "Tanh: "  << '\n' << tanh (fxp(3.14159))  << '\n' << std::tanh(3.14159)       << std::endl;
-  std::cout << "Coth: "  << '\n' << coth (fxp(3.14159))  << '\n' << 1.0 / std::tanh(3.14159) << std::endl;
 //  std::cout << "ASinh: " << '\n' << asinh(fxp(3.14159))  << '\n' << std::asinh(3.14159)      << std::endl;
 //  std::cout << "ACosh: " << '\n' << acosh(fxp(3.14159))  << '\n' << std::acosh(3.14159)      << std::endl;
 //  std::cout << "ATanh: " << '\n' << atanh(fxp(0.5))      << '\n' << std::atanh(1.0 / 2.0)    << std::endl;
