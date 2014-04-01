@@ -184,9 +184,9 @@
     negatable(unsigned long u)      : data(value_type(u) << radix_split) { }
     negatable(unsigned long long u) : data(value_type(u) << radix_split) { }
 
-    negatable(float f)              : data(value_type(f  * radix_split_value<float>())) { }
-    negatable(double d)             : data(value_type(d  * radix_split_value<double>())) { }
-    negatable(long double ld)       : data(value_type(ld * radix_split_value<long double>())) { }
+    negatable(float f)              : data(value_type(f * radix_split_value<float>())) { }
+    negatable(double f)             : data(value_type(f * radix_split_value<double>())) { }
+    negatable(long double f)        : data(value_type(f * radix_split_value<long double>())) { }
 
     negatable(const negatable& v) : data(v.data) { }
 
@@ -240,7 +240,7 @@
 
       unsigned_large_type result((!u_is_neg) ? data : -data);
 
-      result *= (!v_is_neg) ? v.data : -v.data;
+      result *= ((!v_is_neg) ? v.data : -v.data);
 
       data = value_type(result >> radix_split);
 
@@ -312,9 +312,9 @@
     negatable& operator*=(const unsigned long& u)      { data *= u; return *this; }
     negatable& operator*=(const unsigned long long& u) { data *= u; return *this; }
 
-    negatable& operator*=(const float& f)              { const negatable u(f); return operator*=(u); }
-    negatable& operator*=(const double& f)             { const negatable u(f); return operator*=(u); }
-    negatable& operator*=(const long double& f)        { const negatable u(f); return operator*=(u); }
+    negatable& operator*=(const float& f)              { data *= value_type(f * radix_split_value<float>());       return *this; }
+    negatable& operator*=(const double& f)             { data *= value_type(f * radix_split_value<double>());      return *this; }
+    negatable& operator*=(const long double& f)        { data *= value_type(f * radix_split_value<long double>()); return *this; }
 
     negatable& operator/=(const char& n)               { data /= n; return *this; }
     negatable& operator/=(const short& n)              { data /= n; return *this; }
@@ -328,21 +328,21 @@
     negatable& operator/=(const unsigned long& u)      { data /= u; return *this; }
     negatable& operator/=(const unsigned long long& u) { data /= u; return *this; }
 
-    negatable& operator/=(const float& f)              { const negatable u(f); return operator/=(u); }
-    negatable& operator/=(const double& f)             { const negatable u(f); return operator/=(u); }
-    negatable& operator/=(const long double& f)        { const negatable u(f); return operator/=(u); }
+    negatable& operator/=(const float& f)              { data /= value_type(f * radix_split_value<float>());       return *this; }
+    negatable& operator/=(const double& f)             { data /= value_type(f * radix_split_value<double>());      return *this; }
+    negatable& operator/=(const long double& f)        { data /= value_type(f * radix_split_value<long double>()); return *this; }
 
-    operator char()      { return static_cast<char>     (data / radix_split_value<value_type>()); }
-    operator short()     { return static_cast<short>    (data / radix_split_value<value_type>()); }
-    operator int()       { return static_cast<int>      (data / radix_split_value<value_type>()); }
-    operator long()      { return static_cast<long>     (data / radix_split_value<value_type>()); }
-    operator long long() { return static_cast<long long>(data / radix_split_value<value_type>()); }
+    operator char()                                    { return static_cast<char>     (data / radix_split_value<value_type>()); }
+    operator short()                                   { return static_cast<short>    (data / radix_split_value<value_type>()); }
+    operator int()                                     { return static_cast<int>      (data / radix_split_value<value_type>()); }
+    operator long()                                    { return static_cast<long>     (data / radix_split_value<value_type>()); }
+    operator long long()                               { return static_cast<long long>(data / radix_split_value<value_type>()); }
 
-    operator unsigned char()      { return static_cast<char>     (data >> radix_split); }
-    operator unsigned short()     { return static_cast<short>    (data >> radix_split); }
-    operator unsigned int()       { return static_cast<int>      (data >> radix_split); }
-    operator unsigned long()      { return static_cast<long>     (data >> radix_split); }
-    operator unsigned long long() { return static_cast<long long>(data >> radix_split); }
+    operator unsigned char()                           { return static_cast<char>     (data >> radix_split); }
+    operator unsigned short()                          { return static_cast<short>    (data >> radix_split); }
+    operator unsigned int()                            { return static_cast<int>      (data >> radix_split); }
+    operator unsigned long()                           { return static_cast<long>     (data >> radix_split); }
+    operator unsigned long long()                      { return static_cast<long long>(data >> radix_split); }
 
     operator float()
     {
@@ -389,13 +389,18 @@
   private:
     value_type data;
 
+    static const int radix_split = -resolution;
+
+    typedef typename detail::integer_type_helper<range * 1>::exact_unsigned_type unsigned_small_type;
+    typedef typename detail::integer_type_helper<range * 2>::exact_unsigned_type unsigned_large_type;
+
     struct nothing { };
 
-    negatable(const nothing&, const char& u)      : data(u) { }
-    negatable(const nothing&, const short& u)     : data(u) { }
-    negatable(const nothing&, const int& u)       : data(u) { }
-    negatable(const nothing&, const long& u)      : data(u) { }
-    negatable(const nothing&, const long long& u) : data(u) { }
+    negatable(const nothing&, const char& u)               : data(u) { }
+    negatable(const nothing&, const short& u)              : data(u) { }
+    negatable(const nothing&, const int& u)                : data(u) { }
+    negatable(const nothing&, const long& u)               : data(u) { }
+    negatable(const nothing&, const long long& u)          : data(u) { }
 
     negatable(const nothing&, const unsigned char& u)      : data(u) { }
     negatable(const nothing&, const unsigned short& u)     : data(u) { }
@@ -403,24 +408,49 @@
     negatable(const nothing&, const unsigned long& u)      : data(u) { }
     negatable(const nothing&, const unsigned long long& u) : data(u) { }
 
-    static value_type value_quiet_nan() { return std::numeric_limits<value_type>::max() - 1; }
-    static value_type value_infinity()  { return std::numeric_limits<value_type>::max() - 2; }
+    static bool is_quiet_nan(const negatable& x) { return (x.data == value_quiet_nan()); }
+    static bool is_infinity (const negatable& x) { return (x.data == value_infinity()); }
 
-    bool is_quiet_nan() const { return (data == value_quiet_nan()); }
-    bool is_infinity() const  { return (data == value_infinity()); }
+    static value_type make_unsigned_constant(const value_type& x)
+    {
+      // TBD: Provide support for smaller ranges and larger resolutions.
+      // TBD: This will involve the generation of constant coefficients used for transcendentals.
+      static_assert(range > 24, "Error: the negatable class does not yet support such a small range.");
+      static_assert(-resolution <= 24, "Error: the negatable class does not yet support such a large resolution.");
 
-    typedef typename detail::integer_type_helper<range * 1>::exact_unsigned_type unsigned_small_type;
-    typedef typename detail::integer_type_helper<range * 2>::exact_unsigned_type unsigned_large_type;
-
-    static const int radix_split = -resolution;
-
-    static value_type make_unsigned_constant(const value_type& x) { return x >> (24 - radix_split); }
+      return x >> (24 - radix_split);
+    }
 
     template<class arithmetic_type>
     static arithmetic_type radix_split_value()
     {
       return fixed_point::detail::radix_split_maker<arithmetic_type, radix_split>::value();
     }
+
+    static negatable value_epsilon()
+    {
+      value_type r10  = radix_split_value<value_type>();
+
+      if(r10 <= 10)
+      {
+        return negatable(nothing(), 1);
+      }
+      else
+      {
+        // TBD: Can we use template metaprogramming here ?
+        while(r10 > 10)
+        {
+          r10 = (r10 + 9) / 10;
+        }
+
+        return negatable(nothing(), r10);
+      }
+    }
+
+    static negatable value_min()       { return negatable(nothing(), (std::numeric_limits<value_type>::min)()); }
+    static negatable value_max()       { return negatable(nothing(), (std::numeric_limits<value_type>::max)() - 3) ; }
+    static negatable value_infinity()  { return negatable(nothing(), (std::numeric_limits<value_type>::max)() - 2) ; }
+    static negatable value_quiet_nan() { return negatable(nothing(), (std::numeric_limits<value_type>::max)() - 1) ; }
 
     friend class ::std::numeric_limits<negatable>;
 
@@ -440,331 +470,351 @@
     }
 
     // Implementations of global unary plus and minus.
-    friend inline negatable operator+(const negatable& left) { return negatable(left); }
-    friend inline negatable operator-(const negatable& left) { negatable tmp(left); tmp.data = -tmp.data; return tmp; }
+    friend inline negatable operator+ (const negatable& left)                                      { return negatable(left); }
+    friend inline negatable operator- (const negatable& left)                                      { negatable tmp(left); tmp.data = -tmp.data; return tmp; }
 
     // Implementations of global add, sub, mul, div of [lhs(negatable)] operator [rhs(negatable)].
-    friend inline negatable operator+(const negatable& u, const negatable& v) { return negatable(u) += v; }
-    friend inline negatable operator-(const negatable& u, const negatable& v) { return negatable(u) -= v; }
-    friend inline negatable operator*(const negatable& u, const negatable& v) { return negatable(u) *= v; }
-    friend inline negatable operator/(const negatable& u, const negatable& v) { return negatable(u) /= v; }
+    friend inline negatable operator+ (const negatable& u,            const negatable& v)          { return negatable(u) += v; }
+    friend inline negatable operator- (const negatable& u,            const negatable& v)          { return negatable(u) -= v; }
+    friend inline negatable operator* (const negatable& u,            const negatable& v)          { return negatable(u) *= v; }
+    friend inline negatable operator/ (const negatable& u,            const negatable& v)          { return negatable(u) /= v; }
 
     // Implementations of global add, sub, mul, div of [lhs(negatable)] operator [rhs(arithmetic_type)].
-    friend inline negatable operator+(const negatable& u, const char& n)               { negatable result(u); result.data += (n << radix_split); return result; }
-    friend inline negatable operator+(const negatable& u, const short& n)              { negatable result(u); result.data += (n << radix_split); return result; }
-    friend inline negatable operator+(const negatable& u, const int& n)                { negatable result(u); result.data += (n << radix_split); return result; }
-    friend inline negatable operator+(const negatable& u, const long& n)               { negatable result(u); result.data += (n << radix_split); return result; }
-    friend inline negatable operator+(const negatable& u, const long long& n)          { negatable result(u); result.data += (n << radix_split); return result; }
-    friend inline negatable operator+(const negatable& u, const unsigned char& n)      { negatable result(u); result.data += (n << radix_split); return result; }
-    friend inline negatable operator+(const negatable& u, const unsigned short& n)     { negatable result(u); result.data += (n << radix_split); return result; }
-    friend inline negatable operator+(const negatable& u, const unsigned int& n)       { negatable result(u); result.data += (n << radix_split); return result; }
-    friend inline negatable operator+(const negatable& u, const unsigned long& n)      { negatable result(u); result.data += (n << radix_split); return result; }
-    friend inline negatable operator+(const negatable& u, const unsigned long long& n) { negatable result(u); result.data += (n << radix_split); return result; }
+    friend inline negatable operator+ (const negatable& u,            const char& n)               { negatable result(u); result.data += (n << radix_split); return result; }
+    friend inline negatable operator+ (const negatable& u,            const short& n)              { negatable result(u); result.data += (n << radix_split); return result; }
+    friend inline negatable operator+ (const negatable& u,            const int& n)                { negatable result(u); result.data += (n << radix_split); return result; }
+    friend inline negatable operator+ (const negatable& u,            const long& n)               { negatable result(u); result.data += (n << radix_split); return result; }
+    friend inline negatable operator+ (const negatable& u,            const long long& n)          { negatable result(u); result.data += (n << radix_split); return result; }
 
-    friend inline negatable operator-(const negatable& u, const char& n)               { negatable result(u); result.data -= (n << radix_split); return result; }
-    friend inline negatable operator-(const negatable& u, const short& n)              { negatable result(u); result.data -= (n << radix_split); return result; }
-    friend inline negatable operator-(const negatable& u, const int& n)                { negatable result(u); result.data -= (n << radix_split); return result; }
-    friend inline negatable operator-(const negatable& u, const long& n)               { negatable result(u); result.data -= (n << radix_split); return result; }
-    friend inline negatable operator-(const negatable& u, const long long& n)          { negatable result(u); result.data -= (n << radix_split); return result; }
-    friend inline negatable operator-(const negatable& u, const unsigned char& n)      { negatable result(u); result.data -= (n << radix_split); return result; }
-    friend inline negatable operator-(const negatable& u, const unsigned short& n)     { negatable result(u); result.data -= (n << radix_split); return result; }
-    friend inline negatable operator-(const negatable& u, const unsigned int& n)       { negatable result(u); result.data -= (n << radix_split); return result; }
-    friend inline negatable operator-(const negatable& u, const unsigned long& n)      { negatable result(u); result.data -= (n << radix_split); return result; }
-    friend inline negatable operator-(const negatable& u, const unsigned long long& n) { negatable result(u); result.data -= (n << radix_split); return result; }
+    friend inline negatable operator+ (const negatable& u,            const unsigned char& n)      { negatable result(u); result.data += (n << radix_split); return result; }
+    friend inline negatable operator+ (const negatable& u,            const unsigned short& n)     { negatable result(u); result.data += (n << radix_split); return result; }
+    friend inline negatable operator+ (const negatable& u,            const unsigned int& n)       { negatable result(u); result.data += (n << radix_split); return result; }
+    friend inline negatable operator+ (const negatable& u,            const unsigned long& n)      { negatable result(u); result.data += (n << radix_split); return result; }
+    friend inline negatable operator+ (const negatable& u,            const unsigned long long& n) { negatable result(u); result.data += (n << radix_split); return result; }
 
-    friend inline negatable operator*(const negatable& u, const char& n)               { negatable result(u); result.data *= n; return result; }
-    friend inline negatable operator*(const negatable& u, const short& n)              { negatable result(u); result.data *= n; return result; }
-    friend inline negatable operator*(const negatable& u, const int& n)                { negatable result(u); result.data *= n; return result; }
-    friend inline negatable operator*(const negatable& u, const long& n)               { negatable result(u); result.data *= n; return result; }
-    friend inline negatable operator*(const negatable& u, const long long& n)          { negatable result(u); result.data *= n; return result; }
-    friend inline negatable operator*(const negatable& u, const unsigned char& n)      { negatable result(u); result.data *= n; return result; }
-    friend inline negatable operator*(const negatable& u, const unsigned short& n)     { negatable result(u); result.data *= n; return result; }
-    friend inline negatable operator*(const negatable& u, const unsigned int& n)       { negatable result(u); result.data *= n; return result; }
-    friend inline negatable operator*(const negatable& u, const unsigned long& n)      { negatable result(u); result.data *= n; return result; }
-    friend inline negatable operator*(const negatable& u, const unsigned long long& n) { negatable result(u); result.data *= n; return result; }
+    friend inline negatable operator- (const negatable& u,            const char& n)               { negatable result(u); result.data -= (n << radix_split); return result; }
+    friend inline negatable operator- (const negatable& u,            const short& n)              { negatable result(u); result.data -= (n << radix_split); return result; }
+    friend inline negatable operator- (const negatable& u,            const int& n)                { negatable result(u); result.data -= (n << radix_split); return result; }
+    friend inline negatable operator- (const negatable& u,            const long& n)               { negatable result(u); result.data -= (n << radix_split); return result; }
+    friend inline negatable operator- (const negatable& u,            const long long& n)          { negatable result(u); result.data -= (n << radix_split); return result; }
 
-    friend inline negatable operator/(const negatable& u, const char& n)               { negatable result(u); result.data /= n; return result; }
-    friend inline negatable operator/(const negatable& u, const short& n)              { negatable result(u); result.data /= n; return result; }
-    friend inline negatable operator/(const negatable& u, const int& n)                { negatable result(u); result.data /= n; return result; }
-    friend inline negatable operator/(const negatable& u, const long& n)               { negatable result(u); result.data /= n; return result; }
-    friend inline negatable operator/(const negatable& u, const long long& n)          { negatable result(u); result.data /= n; return result; }
-    friend inline negatable operator/(const negatable& u, const unsigned char& n)      { negatable result(u); result.data /= n; return result; }
-    friend inline negatable operator/(const negatable& u, const unsigned short& n)     { negatable result(u); result.data /= n; return result; }
-    friend inline negatable operator/(const negatable& u, const unsigned int& n)       { negatable result(u); result.data /= n; return result; }
-    friend inline negatable operator/(const negatable& u, const unsigned long& n)      { negatable result(u); result.data /= n; return result; }
-    friend inline negatable operator/(const negatable& u, const unsigned long long& n) { negatable result(u); result.data /= n; return result; }
+    friend inline negatable operator- (const negatable& u,            const unsigned char& n)      { negatable result(u); result.data -= (n << radix_split); return result; }
+    friend inline negatable operator- (const negatable& u,            const unsigned short& n)     { negatable result(u); result.data -= (n << radix_split); return result; }
+    friend inline negatable operator- (const negatable& u,            const unsigned int& n)       { negatable result(u); result.data -= (n << radix_split); return result; }
+    friend inline negatable operator- (const negatable& u,            const unsigned long& n)      { negatable result(u); result.data -= (n << radix_split); return result; }
+    friend inline negatable operator- (const negatable& u,            const unsigned long long& n) { negatable result(u); result.data -= (n << radix_split); return result; }
 
-    friend inline negatable operator+(const negatable& u, const float& a)              { return negatable(u) += negatable(a); }
-    friend inline negatable operator+(const negatable& u, const double& a)             { return negatable(u) += negatable(a); }
-    friend inline negatable operator+(const negatable& u, const long double& a)        { return negatable(u) += negatable(a); }
+    friend inline negatable operator* (const negatable& u,            const char& n)               { negatable result(u); result.data *= n; return result; }
+    friend inline negatable operator* (const negatable& u,            const short& n)              { negatable result(u); result.data *= n; return result; }
+    friend inline negatable operator* (const negatable& u,            const int& n)                { negatable result(u); result.data *= n; return result; }
+    friend inline negatable operator* (const negatable& u,            const long& n)               { negatable result(u); result.data *= n; return result; }
+    friend inline negatable operator* (const negatable& u,            const long long& n)          { negatable result(u); result.data *= n; return result; }
 
-    friend inline negatable operator-(const negatable& u, const float& a)              { return negatable(u) -= negatable(a); }
-    friend inline negatable operator-(const negatable& u, const double& a)             { return negatable(u) -= negatable(a); }
-    friend inline negatable operator-(const negatable& u, const long double& a)        { return negatable(u) -= negatable(a); }
+    friend inline negatable operator* (const negatable& u,            const unsigned char& n)      { negatable result(u); result.data *= n; return result; }
+    friend inline negatable operator* (const negatable& u,            const unsigned short& n)     { negatable result(u); result.data *= n; return result; }
+    friend inline negatable operator* (const negatable& u,            const unsigned int& n)       { negatable result(u); result.data *= n; return result; }
+    friend inline negatable operator* (const negatable& u,            const unsigned long& n)      { negatable result(u); result.data *= n; return result; }
+    friend inline negatable operator* (const negatable& u,            const unsigned long long& n) { negatable result(u); result.data *= n; return result; }
 
-    friend inline negatable operator*(const negatable& u, const float& a)              { return negatable(u) *= negatable(a); }
-    friend inline negatable operator*(const negatable& u, const double& a)             { return negatable(u) *= negatable(a); }
-    friend inline negatable operator*(const negatable& u, const long double& a)        { return negatable(u) *= negatable(a); }
+    friend inline negatable operator/ (const negatable& u,            const char& n)               { negatable result(u); result.data /= n; return result; }
+    friend inline negatable operator/ (const negatable& u,            const short& n)              { negatable result(u); result.data /= n; return result; }
+    friend inline negatable operator/ (const negatable& u,            const int& n)                { negatable result(u); result.data /= n; return result; }
+    friend inline negatable operator/ (const negatable& u,            const long& n)               { negatable result(u); result.data /= n; return result; }
+    friend inline negatable operator/ (const negatable& u,            const long long& n)          { negatable result(u); result.data /= n; return result; }
 
-    friend inline negatable operator/(const negatable& u, const float& a)              { return negatable(u) /= negatable(a); }
-    friend inline negatable operator/(const negatable& u, const double& a)             { return negatable(u) /= negatable(a); }
-    friend inline negatable operator/(const negatable& u, const long double& a)        { return negatable(u) /= negatable(a); }
+    friend inline negatable operator/ (const negatable& u,            const unsigned char& n)      { negatable result(u); result.data /= n; return result; }
+    friend inline negatable operator/ (const negatable& u,            const unsigned short& n)     { negatable result(u); result.data /= n; return result; }
+    friend inline negatable operator/ (const negatable& u,            const unsigned int& n)       { negatable result(u); result.data /= n; return result; }
+    friend inline negatable operator/ (const negatable& u,            const unsigned long& n)      { negatable result(u); result.data /= n; return result; }
+    friend inline negatable operator/ (const negatable& u,            const unsigned long long& n) { negatable result(u); result.data /= n; return result; }
+
+    friend inline negatable operator+ (const negatable& u,            const float& a)              { return negatable(u) += negatable(a); }
+    friend inline negatable operator+ (const negatable& u,            const double& a)             { return negatable(u) += negatable(a); }
+    friend inline negatable operator+ (const negatable& u,            const long double& a)        { return negatable(u) += negatable(a); }
+
+    friend inline negatable operator- (const negatable& u,            const float& a)              { return negatable(u) -= negatable(a); }
+    friend inline negatable operator- (const negatable& u,            const double& a)             { return negatable(u) -= negatable(a); }
+    friend inline negatable operator- (const negatable& u,            const long double& a)        { return negatable(u) -= negatable(a); }
+
+    friend inline negatable operator* (const negatable& u,            const float& a)              { return negatable(u) *= negatable(a); }
+    friend inline negatable operator* (const negatable& u,            const double& a)             { return negatable(u) *= negatable(a); }
+    friend inline negatable operator* (const negatable& u,            const long double& a)        { return negatable(u) *= negatable(a); }
+
+    friend inline negatable operator/ (const negatable& u,            const float& a)              { return negatable(u) /= negatable(a); }
+    friend inline negatable operator/ (const negatable& u,            const double& a)             { return negatable(u) /= negatable(a); }
+    friend inline negatable operator/ (const negatable& u,            const long double& a)        { return negatable(u) /= negatable(a); }
 
     // Implementations of global add, sub, mul, div of [lhs(arithmetic_type)] operator [rhs(negatable)].
-    friend inline negatable operator+(const char& n, const negatable& u)               { negatable result(u); result.data += (n << radix_split); return result; }
-    friend inline negatable operator+(const short& n, const negatable& u)              { negatable result(u); result.data += (n << radix_split); return result; }
-    friend inline negatable operator+(const int& n, const negatable& u)                { negatable result(u); result.data += (n << radix_split); return result; }
-    friend inline negatable operator+(const long& n, const negatable& u)               { negatable result(u); result.data += (n << radix_split); return result; }
-    friend inline negatable operator+(const long long& n, const negatable& u)          { negatable result(u); result.data += (n << radix_split); return result; }
-    friend inline negatable operator+(const unsigned char& n, const negatable& u)      { negatable result(u); result.data += (n << radix_split); return result; }
-    friend inline negatable operator+(const unsigned short& n, const negatable& u)     { negatable result(u); result.data += (n << radix_split); return result; }
-    friend inline negatable operator+(const unsigned int& n, const negatable& u)       { negatable result(u); result.data += (n << radix_split); return result; }
-    friend inline negatable operator+(const unsigned long& n, const negatable& u)      { negatable result(u); result.data += (n << radix_split); return result; }
-    friend inline negatable operator+(const unsigned long long& n, const negatable& u) { negatable result(u); result.data += (n << radix_split); return result; }
+    friend inline negatable operator+ (const char& n,                 const negatable& u)          { negatable result(u); result.data += (n << radix_split); return result; }
+    friend inline negatable operator+ (const short& n,                const negatable& u)          { negatable result(u); result.data += (n << radix_split); return result; }
+    friend inline negatable operator+ (const int& n,                  const negatable& u)          { negatable result(u); result.data += (n << radix_split); return result; }
+    friend inline negatable operator+ (const long& n,                 const negatable& u)          { negatable result(u); result.data += (n << radix_split); return result; }
+    friend inline negatable operator+ (const long long& n,            const negatable& u)          { negatable result(u); result.data += (n << radix_split); return result; }
 
-    friend inline negatable operator-(const char& n, const negatable& u)               { negatable result(n); result -= u; return result; }
-    friend inline negatable operator-(const short& n, const negatable& u)              { negatable result(n); result -= u; return result; }
-    friend inline negatable operator-(const int& n, const negatable& u)                { negatable result(n); result -= u; return result; }
-    friend inline negatable operator-(const long& n, const negatable& u)               { negatable result(n); result -= u; return result; }
-    friend inline negatable operator-(const long long& n, const negatable& u)          { negatable result(n); result -= u; return result; }
-    friend inline negatable operator-(const unsigned char& n, const negatable& u)      { negatable result(n); result -= u; return result; }
-    friend inline negatable operator-(const unsigned short& n, const negatable& u)     { negatable result(n); result -= u; return result; }
-    friend inline negatable operator-(const unsigned int& n, const negatable& u)       { negatable result(n); result -= u; return result; }
-    friend inline negatable operator-(const unsigned long& n, const negatable& u)      { negatable result(n); result -= u; return result; }
-    friend inline negatable operator-(const unsigned long long& n, const negatable& u) { negatable result(n); result -= u; return result; }
+    friend inline negatable operator+ (const unsigned char& n,        const negatable& u)          { negatable result(u); result.data += (n << radix_split); return result; }
+    friend inline negatable operator+ (const unsigned short& n,       const negatable& u)          { negatable result(u); result.data += (n << radix_split); return result; }
+    friend inline negatable operator+ (const unsigned int& n,         const negatable& u)          { negatable result(u); result.data += (n << radix_split); return result; }
+    friend inline negatable operator+ (const unsigned long& n,        const negatable& u)          { negatable result(u); result.data += (n << radix_split); return result; }
+    friend inline negatable operator+ (const unsigned long long& n,   const negatable& u)          { negatable result(u); result.data += (n << radix_split); return result; }
 
-    friend inline negatable operator*(const char& n, const negatable& u)               { negatable result(u); result.data *= n; return result; }
-    friend inline negatable operator*(const short& n, const negatable& u)              { negatable result(u); result.data *= n; return result; }
-    friend inline negatable operator*(const int& n, const negatable& u)                { negatable result(u); result.data *= n; return result; }
-    friend inline negatable operator*(const long& n, const negatable& u)               { negatable result(u); result.data *= n; return result; }
-    friend inline negatable operator*(const long long& n, const negatable& u)          { negatable result(u); result.data *= n; return result; }
-    friend inline negatable operator*(const unsigned char& n, const negatable& u)      { negatable result(u); result.data *= n; return result; }
-    friend inline negatable operator*(const unsigned short& n, const negatable& u)     { negatable result(u); result.data *= n; return result; }
-    friend inline negatable operator*(const unsigned int& n, const negatable& u)       { negatable result(u); result.data *= n; return result; }
-    friend inline negatable operator*(const unsigned long& n, const negatable& u)      { negatable result(u); result.data *= n; return result; }
-    friend inline negatable operator*(const unsigned long long& n, const negatable& u) { negatable result(u); result.data *= n; return result; }
+    friend inline negatable operator- (const char& n,                 const negatable& u)          { negatable result(n); result -= u; return result; }
+    friend inline negatable operator- (const short& n,                const negatable& u)          { negatable result(n); result -= u; return result; }
+    friend inline negatable operator- (const int& n,                  const negatable& u)          { negatable result(n); result -= u; return result; }
+    friend inline negatable operator- (const long& n,                 const negatable& u)          { negatable result(n); result -= u; return result; }
+    friend inline negatable operator- (const long long& n,            const negatable& u)          { negatable result(n); result -= u; return result; }
 
-    friend inline negatable operator/(const char& n, const negatable& u)               { negatable result(n); result /= u; return result; }
-    friend inline negatable operator/(const short& n, const negatable& u)              { negatable result(n); result /= u; return result; }
-    friend inline negatable operator/(const int& n, const negatable& u)                { negatable result(n); result /= u; return result; }
-    friend inline negatable operator/(const long& n, const negatable& u)               { negatable result(n); result /= u; return result; }
-    friend inline negatable operator/(const long long& n, const negatable& u)          { negatable result(n); result /= u; return result; }
-    friend inline negatable operator/(const unsigned char& n, const negatable& u)      { negatable result(n); result /= u; return result; }
-    friend inline negatable operator/(const unsigned short& n, const negatable& u)     { negatable result(n); result /= u; return result; }
-    friend inline negatable operator/(const unsigned int& n, const negatable& u)       { negatable result(n); result /= u; return result; }
-    friend inline negatable operator/(const unsigned long& n, const negatable& u)      { negatable result(n); result /= u; return result; }
-    friend inline negatable operator/(const unsigned long long& n, const negatable& u) { negatable result(n); result /= u; return result; }
+    friend inline negatable operator- (const unsigned char& n,        const negatable& u)          { negatable result(n); result -= u; return result; }
+    friend inline negatable operator- (const unsigned short& n,       const negatable& u)          { negatable result(n); result -= u; return result; }
+    friend inline negatable operator- (const unsigned int& n,         const negatable& u)          { negatable result(n); result -= u; return result; }
+    friend inline negatable operator- (const unsigned long& n,        const negatable& u)          { negatable result(n); result -= u; return result; }
+    friend inline negatable operator- (const unsigned long long& n,   const negatable& u)          { negatable result(n); result -= u; return result; }
 
-    friend inline negatable operator+(const float& a, const negatable& u)              { return negatable(a) += u; }
-    friend inline negatable operator+(const double& a, const negatable& u)             { return negatable(a) += u; }
-    friend inline negatable operator+(const long double& a, const negatable& u)        { return negatable(a) += u; }
+    friend inline negatable operator* (const char& n,                 const negatable& u)          { negatable result(u); result.data *= n; return result; }
+    friend inline negatable operator* (const short& n,                const negatable& u)          { negatable result(u); result.data *= n; return result; }
+    friend inline negatable operator* (const int& n,                  const negatable& u)          { negatable result(u); result.data *= n; return result; }
+    friend inline negatable operator* (const long& n,                 const negatable& u)          { negatable result(u); result.data *= n; return result; }
+    friend inline negatable operator* (const long long& n,            const negatable& u)          { negatable result(u); result.data *= n; return result; }
 
-    friend inline negatable operator-(const float& a, const negatable& u)              { return negatable(a) -= u; }
-    friend inline negatable operator-(const double& a, const negatable& u)             { return negatable(a) -= u; }
-    friend inline negatable operator-(const long double& a, const negatable& u)        { return negatable(a) -= u; }
+    friend inline negatable operator* (const unsigned char& n,        const negatable& u)          { negatable result(u); result.data *= n; return result; }
+    friend inline negatable operator* (const unsigned short& n,       const negatable& u)          { negatable result(u); result.data *= n; return result; }
+    friend inline negatable operator* (const unsigned int& n,         const negatable& u)          { negatable result(u); result.data *= n; return result; }
+    friend inline negatable operator* (const unsigned long& n,        const negatable& u)          { negatable result(u); result.data *= n; return result; }
+    friend inline negatable operator* (const unsigned long long& n,   const negatable& u)          { negatable result(u); result.data *= n; return result; }
 
-    friend inline negatable operator*(const float& a, const negatable& u)              { return negatable(a) *= u; }
-    friend inline negatable operator*(const double& a, const negatable& u)             { return negatable(a) *= u; }
-    friend inline negatable operator*(const long double& a, const negatable& u)        { return negatable(a) *= u; }
+    friend inline negatable operator/ (const char& n,                 const negatable& u)          { negatable result(n); result /= u; return result; }
+    friend inline negatable operator/ (const short& n,                const negatable& u)          { negatable result(n); result /= u; return result; }
+    friend inline negatable operator/ (const int& n,                  const negatable& u)          { negatable result(n); result /= u; return result; }
+    friend inline negatable operator/ (const long& n,                 const negatable& u)          { negatable result(n); result /= u; return result; }
+    friend inline negatable operator/ (const long long& n,            const negatable& u)          { negatable result(n); result /= u; return result; }
 
-    friend inline negatable operator/(const float& a, const negatable& u)              { return negatable(a) /= u; }
-    friend inline negatable operator/(const double& a, const negatable& u)             { return negatable(a) /= u; }
-    friend inline negatable operator/(const long double& a, const negatable& u)        { return negatable(a) /= u; }
+    friend inline negatable operator/ (const unsigned char& n,        const negatable& u)          { negatable result(n); result /= u; return result; }
+    friend inline negatable operator/ (const unsigned short& n,       const negatable& u)          { negatable result(n); result /= u; return result; }
+    friend inline negatable operator/ (const unsigned int& n,         const negatable& u)          { negatable result(n); result /= u; return result; }
+    friend inline negatable operator/ (const unsigned long& n,        const negatable& u)          { negatable result(n); result /= u; return result; }
+    friend inline negatable operator/ (const unsigned long long& n,   const negatable& u)          { negatable result(n); result /= u; return result; }
+
+    friend inline negatable operator+ (const float& a,                const negatable& u)          { return negatable(a) += u; }
+    friend inline negatable operator+ (const double& a,               const negatable& u)          { return negatable(a) += u; }
+    friend inline negatable operator+ (const long double& a,          const negatable& u)          { return negatable(a) += u; }
+
+    friend inline negatable operator- (const float& a,                const negatable& u)          { return negatable(a) -= u; }
+    friend inline negatable operator- (const double& a,               const negatable& u)          { return negatable(a) -= u; }
+    friend inline negatable operator- (const long double& a,          const negatable& u)          { return negatable(a) -= u; }
+
+    friend inline negatable operator* (const float& a,                const negatable& u)          { return negatable(a) *= u; }
+    friend inline negatable operator* (const double& a,               const negatable& u)          { return negatable(a) *= u; }
+    friend inline negatable operator* (const long double& a,          const negatable& u)          { return negatable(a) *= u; }
+
+    friend inline negatable operator/ (const float& a,                const negatable& u)          { return negatable(a) /= u; }
+    friend inline negatable operator/ (const double& a,               const negatable& u)          { return negatable(a) /= u; }
+    friend inline negatable operator/ (const long double& a,          const negatable& u)          { return negatable(a) /= u; }
 
     // Implementations of global equality.
-    friend inline bool operator==(const negatable& u, const negatable& v)             { return ((u.data == v.data) && (!(u.is_quiet_nan() && v.is_quiet_nan()))); }
+    friend inline bool      operator==(const negatable& u,            const negatable& v)          { return ((u.data == v.data) && (!(negatable::is_quiet_nan(u) && negatable::is_quiet_nan(v)))); }
 
-    friend inline bool operator==(const negatable& u, const char& v)                  { return (u.data == negatable(v).data); }
-    friend inline bool operator==(const negatable& u, const short& v)                 { return (u.data == negatable(v).data); }
-    friend inline bool operator==(const negatable& u, const int& v)                   { return (u.data == negatable(v).data); }
-    friend inline bool operator==(const negatable& u, const long& v)                  { return (u.data == negatable(v).data); }
-    friend inline bool operator==(const negatable& u, const long long& v)             { return (u.data == negatable(v).data); }
-    friend inline bool operator==(const negatable& u, const unsigned char& v)         { return (u.data == negatable(v).data); }
-    friend inline bool operator==(const negatable& u, const unsigned short& v)        { return (u.data == negatable(v).data); }
-    friend inline bool operator==(const negatable& u, const unsigned int& v)          { return (u.data == negatable(v).data); }
-    friend inline bool operator==(const negatable& u, const unsigned long& v)         { return (u.data == negatable(v).data); }
-    friend inline bool operator==(const negatable& u, const unsigned long long& v)    { return (u.data == negatable(v).data); }
+    friend inline bool      operator==(const negatable& u,            const char& v)               { return (u.data == negatable(v).data); }
+    friend inline bool      operator==(const negatable& u,            const short& v)              { return (u.data == negatable(v).data); }
+    friend inline bool      operator==(const negatable& u,            const int& v)                { return (u.data == negatable(v).data); }
+    friend inline bool      operator==(const negatable& u,            const long& v)               { return (u.data == negatable(v).data); }
+    friend inline bool      operator==(const negatable& u,            const long long& v)          { return (u.data == negatable(v).data); }
 
-    friend inline bool operator==(const negatable& u, const float& v)                 { return ((u.data == negatable(v).data) && (!(u.is_quiet_nan() && (v != v)))); }
-    friend inline bool operator==(const negatable& u, const double& v)                { return ((u.data == negatable(v).data) && (!(u.is_quiet_nan() && (v != v)))); }
-    friend inline bool operator==(const negatable& u, const long double& v)           { return ((u.data == negatable(v).data) && (!(u.is_quiet_nan() && (v != v)))); }
+    friend inline bool      operator==(const negatable& u,            const unsigned char& v)      { return (u.data == negatable(v).data); }
+    friend inline bool      operator==(const negatable& u,            const unsigned short& v)     { return (u.data == negatable(v).data); }
+    friend inline bool      operator==(const negatable& u,            const unsigned int& v)       { return (u.data == negatable(v).data); }
+    friend inline bool      operator==(const negatable& u,            const unsigned long& v)      { return (u.data == negatable(v).data); }
+    friend inline bool      operator==(const negatable& u,            const unsigned long long& v) { return (u.data == negatable(v).data); }
 
-    friend inline bool operator==(const char& u, const negatable& v)                  { return (negatable(u).data == v.data); }
-    friend inline bool operator==(const short& u, const negatable& v)                 { return (negatable(u).data == v.data); }
-    friend inline bool operator==(const int& u, const negatable& v)                   { return (negatable(u).data == v.data); }
-    friend inline bool operator==(const long& u, const negatable& v)                  { return (negatable(u).data == v.data); }
-    friend inline bool operator==(const long long& u, const negatable& v)             { return (negatable(u).data == v.data); }
-    friend inline bool operator==(const unsigned char& u, const negatable& v)         { return (negatable(u).data == v.data); }
-    friend inline bool operator==(const unsigned short& u, const negatable& v)        { return (negatable(u).data == v.data); }
-    friend inline bool operator==(const unsigned int& u, const negatable& v)          { return (negatable(u).data == v.data); }
-    friend inline bool operator==(const unsigned long& u, const negatable& v)         { return (negatable(u).data == v.data); }
-    friend inline bool operator==(const unsigned  long long& u, const negatable& v)   { return (negatable(u).data == v.data); }
+    friend inline bool      operator==(const negatable& u,            const float& v)              { return ((u.data == negatable(v).data) && (!(negatable::is_quiet_nan(u) && (negatable::is_quiet_nan(v))))); }
+    friend inline bool      operator==(const negatable& u,            const double& v)             { return ((u.data == negatable(v).data) && (!(negatable::is_quiet_nan(u) && (negatable::is_quiet_nan(v))))); }
+    friend inline bool      operator==(const negatable& u,            const long double& v)        { return ((u.data == negatable(v).data) && (!(negatable::is_quiet_nan(u) && (negatable::is_quiet_nan(v))))); }
 
-    friend inline bool operator==(const float& u, const negatable& v)                 { return ((negatable(u).data == v.data) && (!((u != u) && v.is_quiet_nan()))); }
-    friend inline bool operator==(const double& u, const negatable& v)                { return ((negatable(u).data == v.data) && (!((u != u) && v.is_quiet_nan()))); }
-    friend inline bool operator==(const double long& u, const negatable& v)           { return ((negatable(u).data == v.data) && (!((u != u) && v.is_quiet_nan()))); }
+    friend inline bool      operator==(const char& u,                 const negatable& v)          { return (negatable(u).data == v.data); }
+    friend inline bool      operator==(const short& u,                const negatable& v)          { return (negatable(u).data == v.data); }
+    friend inline bool      operator==(const int& u,                  const negatable& v)          { return (negatable(u).data == v.data); }
+    friend inline bool      operator==(const long& u,                 const negatable& v)          { return (negatable(u).data == v.data); }
+    friend inline bool      operator==(const long long& u,            const negatable& v)          { return (negatable(u).data == v.data); }
+
+    friend inline bool      operator==(const unsigned char& u,        const negatable& v)          { return (negatable(u).data == v.data); }
+    friend inline bool      operator==(const unsigned short& u,       const negatable& v)          { return (negatable(u).data == v.data); }
+    friend inline bool      operator==(const unsigned int& u,         const negatable& v)          { return (negatable(u).data == v.data); }
+    friend inline bool      operator==(const unsigned long& u,        const negatable& v)          { return (negatable(u).data == v.data); }
+    friend inline bool      operator==(const unsigned long long& u,   const negatable& v)          { return (negatable(u).data == v.data); }
+
+    friend inline bool      operator==(const float& u,                const negatable& v)          { return ((negatable(u).data == v.data) && (!((negatable::is_quiet_nan(u)) && negatable::is_quiet_nan(v)))); }
+    friend inline bool      operator==(const double& u,               const negatable& v)          { return ((negatable(u).data == v.data) && (!((negatable::is_quiet_nan(u)) && negatable::is_quiet_nan(v)))); }
+    friend inline bool      operator==(const double long& u,          const negatable& v)          { return ((negatable(u).data == v.data) && (!((negatable::is_quiet_nan(u)) && negatable::is_quiet_nan(v)))); }
 
     // Implementations of global inequality.
-    friend inline bool operator!=(const negatable& u, const negatable& v)             { return ((u.data != v.data) || (u.is_quiet_nan() && v.is_quiet_nan())); }
+    friend inline bool      operator!=(const negatable& u,            const negatable& v)          { return ((u.data != v.data) || (negatable::is_quiet_nan(u) && negatable::is_quiet_nan(v))); }
 
-    friend inline bool operator!=(const negatable& u, const char& v)                  { return (u.data != negatable(v).data); }
-    friend inline bool operator!=(const negatable& u, const short& v)                 { return (u.data != negatable(v).data); }
-    friend inline bool operator!=(const negatable& u, const int& v)                   { return (u.data != negatable(v).data); }
-    friend inline bool operator!=(const negatable& u, const long& v)                  { return (u.data != negatable(v).data); }
-    friend inline bool operator!=(const negatable& u, const long long& v)             { return (u.data != negatable(v).data); }
-    friend inline bool operator!=(const negatable& u, const unsigned char& v)         { return (u.data != negatable(v).data); }
-    friend inline bool operator!=(const negatable& u, const unsigned short& v)        { return (u.data != negatable(v).data); }
-    friend inline bool operator!=(const negatable& u, const unsigned int& v)          { return (u.data != negatable(v).data); }
-    friend inline bool operator!=(const negatable& u, const unsigned long& v)         { return (u.data != negatable(v).data); }
-    friend inline bool operator!=(const negatable& u, const unsigned long long& v)    { return (u.data != negatable(v).data); }
+    friend inline bool      operator!=(const negatable& u,            const char& v)               { return (u.data != negatable(v).data); }
+    friend inline bool      operator!=(const negatable& u,            const short& v)              { return (u.data != negatable(v).data); }
+    friend inline bool      operator!=(const negatable& u,            const int& v)                { return (u.data != negatable(v).data); }
+    friend inline bool      operator!=(const negatable& u,            const long& v)               { return (u.data != negatable(v).data); }
+    friend inline bool      operator!=(const negatable& u,            const long long& v)          { return (u.data != negatable(v).data); }
 
-    friend inline bool operator!=(const negatable& u, const float& v)                 { return ((u.data != negatable(v).data) || (u.is_quiet_nan() && (v != v))); }
-    friend inline bool operator!=(const negatable& u, const double& v)                { return ((u.data != negatable(v).data) || (u.is_quiet_nan() && (v != v))); }
-    friend inline bool operator!=(const negatable& u, const long double& v)           { return ((u.data != negatable(v).data) || (u.is_quiet_nan() && (v != v))); }
+    friend inline bool      operator!=(const negatable& u,            const unsigned char& v)      { return (u.data != negatable(v).data); }
+    friend inline bool      operator!=(const negatable& u,            const unsigned short& v)     { return (u.data != negatable(v).data); }
+    friend inline bool      operator!=(const negatable& u,            const unsigned int& v)       { return (u.data != negatable(v).data); }
+    friend inline bool      operator!=(const negatable& u,            const unsigned long& v)      { return (u.data != negatable(v).data); }
+    friend inline bool      operator!=(const negatable& u,            const unsigned long long& v) { return (u.data != negatable(v).data); }
 
-    friend inline bool operator!=(const char& u, const negatable& v)                  { return (negatable(u).data != v.data); }
-    friend inline bool operator!=(const short& u, const negatable& v)                 { return (negatable(u).data != v.data); }
-    friend inline bool operator!=(const int& u, const negatable& v)                   { return (negatable(u).data != v.data); }
-    friend inline bool operator!=(const long& u, const negatable& v)                  { return (negatable(u).data != v.data); }
-    friend inline bool operator!=(const long long& u, const negatable& v)             { return (negatable(u).data != v.data); }
-    friend inline bool operator!=(const unsigned char& u, const negatable& v)         { return (negatable(u).data != v.data); }
-    friend inline bool operator!=(const unsigned short& u, const negatable& v)      { return (negatable(u).data != v.data); }
-    friend inline bool operator!=(const unsigned int& u, const negatable& v)        { return (negatable(u).data != v.data); }
-    friend inline bool operator!=(const unsigned long& u, const negatable& v)       { return (negatable(u).data != v.data); }
-    friend inline bool operator!=(const unsigned  long long& u, const negatable& v) { return (negatable(u).data != v.data); }
+    friend inline bool      operator!=(const negatable& u,            const float& v)              { return ((u.data != negatable(v).data) || (negatable::is_quiet_nan(u) && (negatable::is_quiet_nan(v)))); }
+    friend inline bool      operator!=(const negatable& u,            const double& v)             { return ((u.data != negatable(v).data) || (negatable::is_quiet_nan(u) && (negatable::is_quiet_nan(v)))); }
+    friend inline bool      operator!=(const negatable& u,            const long double& v)        { return ((u.data != negatable(v).data) || (negatable::is_quiet_nan(u) && (negatable::is_quiet_nan(v)))); }
 
-    friend inline bool operator!=(const float& u, const negatable& v)               { return ((negatable(u).data != v.data) || ((u != u) && v.is_quiet_nan())); }
-    friend inline bool operator!=(const double& u, const negatable& v)              { return ((negatable(u).data != v.data) || ((u != u) && v.is_quiet_nan())); }
-    friend inline bool operator!=(const double long& u, const negatable& v)         { return ((negatable(u).data != v.data) || ((u != u) && v.is_quiet_nan())); }
+    friend inline bool      operator!=(const char& u,                 const negatable& v)          { return (negatable(u).data != v.data); }
+    friend inline bool      operator!=(const short& u,                const negatable& v)          { return (negatable(u).data != v.data); }
+    friend inline bool      operator!=(const int& u,                  const negatable& v)          { return (negatable(u).data != v.data); }
+    friend inline bool      operator!=(const long& u,                 const negatable& v)          { return (negatable(u).data != v.data); }
+    friend inline bool      operator!=(const long long& u,            const negatable& v)          { return (negatable(u).data != v.data); }
 
-    // Implementations of >, <, >=, <=.
-    friend inline bool operator>(const negatable& u,           const negatable& v)          { return ((u.data > v.data) && (!(u.is_quiet_nan() && v.is_quiet_nan()))); }
+    friend inline bool      operator!=(const unsigned char& u,        const negatable& v)          { return (negatable(u).data != v.data); }
+    friend inline bool      operator!=(const unsigned short& u,       const negatable& v)          { return (negatable(u).data != v.data); }
+    friend inline bool      operator!=(const unsigned int& u,         const negatable& v)          { return (negatable(u).data != v.data); }
+    friend inline bool      operator!=(const unsigned long& u,        const negatable& v)          { return (negatable(u).data != v.data); }
+    friend inline bool      operator!=(const unsigned long long& u,   const negatable& v)          { return (negatable(u).data != v.data); }
 
-    friend inline bool operator>(const negatable& u,           const char& v)               { return (u.data > negatable(v).data); }
-    friend inline bool operator>(const negatable& u,           const short& v)              { return (u.data > negatable(v).data); }
-    friend inline bool operator>(const negatable& u,           const int& v)                { return (u.data > negatable(v).data); }
-    friend inline bool operator>(const negatable& u,           const long& v)               { return (u.data > negatable(v).data); }
-    friend inline bool operator>(const negatable& u,           const long long& v)          { return (u.data > negatable(v).data); }
-    friend inline bool operator>(const negatable& u,           const unsigned char& v)      { return (u.data > negatable(v).data); }
-    friend inline bool operator>(const negatable& u,           const unsigned short& v)     { return (u.data > negatable(v).data); }
-    friend inline bool operator>(const negatable& u,           const unsigned int& v)       { return (u.data > negatable(v).data); }
-    friend inline bool operator>(const negatable& u,           const unsigned long& v)      { return (u.data > negatable(v).data); }
-    friend inline bool operator>(const negatable& u,           const unsigned long long& v) { return (u.data > negatable(v).data); }
+    friend inline bool      operator!=(const float& u,                const negatable& v)          { return ((negatable(u).data != v.data) || ((negatable::is_quiet_nan(u)) && negatable::is_quiet_nan(v))); }
+    friend inline bool      operator!=(const double& u,               const negatable& v)          { return ((negatable(u).data != v.data) || ((negatable::is_quiet_nan(u)) && negatable::is_quiet_nan(v))); }
+    friend inline bool      operator!=(const double long& u,          const negatable& v)          { return ((negatable(u).data != v.data) || ((negatable::is_quiet_nan(u)) && negatable::is_quiet_nan(v))); }
 
-    friend inline bool operator>(const negatable& u,           const float& v)              { return ((u.data > negatable(v).data) && (!(u.is_quiet_nan() && (v != v)))); }
-    friend inline bool operator>(const negatable& u,           const double& v)             { return ((u.data > negatable(v).data) && (!(u.is_quiet_nan() && (v != v)))); }
-    friend inline bool operator>(const negatable& u,           const long double& v)        { return ((u.data > negatable(v).data) && (!(u.is_quiet_nan() && (v != v)))); }
+    // Implementations of global operators >, <, >=, <=.
+    friend inline bool      operator> (const negatable& u,            const negatable& v)          { return ((u.data > v.data) && (!(negatable::is_quiet_nan(u) && negatable::is_quiet_nan(v)))); }
 
-    friend inline bool operator>(const char& u,                const negatable& v)          { return (negatable(u).data > v.data); }
-    friend inline bool operator>(const short& u,               const negatable& v)          { return (negatable(u).data > v.data); }
-    friend inline bool operator>(const int& u,                 const negatable& v)          { return (negatable(u).data > v.data); }
-    friend inline bool operator>(const long& u,                const negatable& v)          { return (negatable(u).data > v.data); }
-    friend inline bool operator>(const long long& u,           const negatable& v)          { return (negatable(u).data > v.data); }
-    friend inline bool operator>(const unsigned char& u,       const negatable& v)          { return (negatable(u).data > v.data); }
-    friend inline bool operator>(const unsigned short& u,      const negatable& v)          { return (negatable(u).data > v.data); }
-    friend inline bool operator>(const unsigned int& u,        const negatable& v)          { return (negatable(u).data > v.data); }
-    friend inline bool operator>(const unsigned long& u,       const negatable& v)          { return (negatable(u).data > v.data); }
-    friend inline bool operator>(const unsigned long long& u,  const negatable& v)          { return (negatable(u).data > v.data); }
+    friend inline bool      operator> (const negatable& u,            const char& v)               { return (u.data > negatable(v).data); }
+    friend inline bool      operator> (const negatable& u,            const short& v)              { return (u.data > negatable(v).data); }
+    friend inline bool      operator> (const negatable& u,            const int& v)                { return (u.data > negatable(v).data); }
+    friend inline bool      operator> (const negatable& u,            const long& v)               { return (u.data > negatable(v).data); }
+    friend inline bool      operator> (const negatable& u,            const long long& v)          { return (u.data > negatable(v).data); }
 
-    friend inline bool operator>(const float& u,               const negatable& v)          { return ((negatable(u).data > v.data) && (!((u != u) && v.is_quiet_nan()))); }
-    friend inline bool operator>(const double& u,              const negatable& v)          { return ((negatable(u).data > v.data) && (!((u != u) && v.is_quiet_nan()))); }
-    friend inline bool operator>(const double long& u,         const negatable& v)          { return ((negatable(u).data > v.data) && (!((u != u) && v.is_quiet_nan()))); }
+    friend inline bool      operator> (const negatable& u,            const unsigned char& v)      { return (u.data > negatable(v).data); }
+    friend inline bool      operator> (const negatable& u,            const unsigned short& v)     { return (u.data > negatable(v).data); }
+    friend inline bool      operator> (const negatable& u,            const unsigned int& v)       { return (u.data > negatable(v).data); }
+    friend inline bool      operator> (const negatable& u,            const unsigned long& v)      { return (u.data > negatable(v).data); }
+    friend inline bool      operator> (const negatable& u,            const unsigned long long& v) { return (u.data > negatable(v).data); }
 
-    friend inline bool operator<(const negatable& u,           const negatable& v)          { return ((u.data < v.data) || (u.is_quiet_nan() && v.is_quiet_nan())); }
+    friend inline bool      operator> (const negatable& u,            const float& v)              { return ((u.data > negatable(v).data) && (!(negatable::is_quiet_nan(u) && (negatable::is_quiet_nan(v))))); }
+    friend inline bool      operator> (const negatable& u,            const double& v)             { return ((u.data > negatable(v).data) && (!(negatable::is_quiet_nan(u) && (negatable::is_quiet_nan(v))))); }
+    friend inline bool      operator> (const negatable& u,            const long double& v)        { return ((u.data > negatable(v).data) && (!(negatable::is_quiet_nan(u) && (negatable::is_quiet_nan(v))))); }
 
-    friend inline bool operator<(const negatable& u,           const char& v)               { return (u.data < negatable(v).data); }
-    friend inline bool operator<(const negatable& u,           const short& v)              { return (u.data < negatable(v).data); }
-    friend inline bool operator<(const negatable& u,           const int& v)                { return (u.data < negatable(v).data); }
-    friend inline bool operator<(const negatable& u,           const long& v)               { return (u.data < negatable(v).data); }
-    friend inline bool operator<(const negatable& u,           const long long& v)          { return (u.data < negatable(v).data); }
-    friend inline bool operator<(const negatable& u,           const unsigned char& v)      { return (u.data < negatable(v).data); }
-    friend inline bool operator<(const negatable& u,           const unsigned short& v)     { return (u.data < negatable(v).data); }
-    friend inline bool operator<(const negatable& u,           const unsigned int& v)       { return (u.data < negatable(v).data); }
-    friend inline bool operator<(const negatable& u,           const unsigned long& v)      { return (u.data < negatable(v).data); }
-    friend inline bool operator<(const negatable& u,           const unsigned long long& v) { return (u.data < negatable(v).data); }
+    friend inline bool      operator> (const char& u,                 const negatable& v)          { return (negatable(u).data > v.data); }
+    friend inline bool      operator> (const short& u,                const negatable& v)          { return (negatable(u).data > v.data); }
+    friend inline bool      operator> (const int& u,                  const negatable& v)          { return (negatable(u).data > v.data); }
+    friend inline bool      operator> (const long& u,                 const negatable& v)          { return (negatable(u).data > v.data); }
+    friend inline bool      operator> (const long long& u,            const negatable& v)          { return (negatable(u).data > v.data); }
 
-    friend inline bool operator<(const negatable& u,           const float& v)              { return ((u.data < negatable(v).data) || (u.is_quiet_nan() && (v != v))); }
-    friend inline bool operator<(const negatable& u,           const double& v)             { return ((u.data < negatable(v).data) || (u.is_quiet_nan() && (v != v))); }
-    friend inline bool operator<(const negatable& u,           const long double& v)        { return ((u.data < negatable(v).data) || (u.is_quiet_nan() && (v != v))); }
+    friend inline bool      operator> (const unsigned char& u,        const negatable& v)          { return (negatable(u).data > v.data); }
+    friend inline bool      operator> (const unsigned short& u,       const negatable& v)          { return (negatable(u).data > v.data); }
+    friend inline bool      operator> (const unsigned int& u,         const negatable& v)          { return (negatable(u).data > v.data); }
+    friend inline bool      operator> (const unsigned long& u,        const negatable& v)          { return (negatable(u).data > v.data); }
+    friend inline bool      operator> (const unsigned long long& u,   const negatable& v)          { return (negatable(u).data > v.data); }
 
-    friend inline bool operator<(const char& u,                const negatable& v)          { return (negatable(u).data < v.data); }
-    friend inline bool operator<(const short& u,               const negatable& v)          { return (negatable(u).data < v.data); }
-    friend inline bool operator<(const int& u,                 const negatable& v)          { return (negatable(u).data < v.data); }
-    friend inline bool operator<(const long& u,                const negatable& v)          { return (negatable(u).data < v.data); }
-    friend inline bool operator<(const long long& u,           const negatable& v)          { return (negatable(u).data < v.data); }
-    friend inline bool operator<(const unsigned char& u,       const negatable& v)          { return (negatable(u).data < v.data); }
-    friend inline bool operator<(const unsigned short& u,      const negatable& v)          { return (negatable(u).data < v.data); }
-    friend inline bool operator<(const unsigned int& u,        const negatable& v)          { return (negatable(u).data < v.data); }
-    friend inline bool operator<(const unsigned long& u,       const negatable& v)          { return (negatable(u).data < v.data); }
-    friend inline bool operator<(const unsigned  long long& u, const negatable& v)          { return (negatable(u).data < v.data); }
+    friend inline bool      operator> (const float& u,                const negatable& v)          { return ((negatable(u).data > v.data) && (!((negatable::is_quiet_nan(u)) && negatable::is_quiet_nan(v)))); }
+    friend inline bool      operator> (const double& u,               const negatable& v)          { return ((negatable(u).data > v.data) && (!((negatable::is_quiet_nan(u)) && negatable::is_quiet_nan(v)))); }
+    friend inline bool      operator> (const double long& u,          const negatable& v)          { return ((negatable(u).data > v.data) && (!((negatable::is_quiet_nan(u)) && negatable::is_quiet_nan(v)))); }
 
-    friend inline bool operator<(const float& u,               const negatable& v)          { return ((negatable(u).data < v.data) || ((u != u) && v.is_quiet_nan())); }
-    friend inline bool operator<(const double& u,              const negatable& v)          { return ((negatable(u).data < v.data) || ((u != u) && v.is_quiet_nan())); }
-    friend inline bool operator<(const double long& u,         const negatable& v)          { return ((negatable(u).data < v.data) || ((u != u) && v.is_quiet_nan())); }
+    friend inline bool      operator< (const negatable& u,            const negatable& v)          { return ((u.data < v.data) || (negatable::is_quiet_nan(u) && negatable::is_quiet_nan(v))); }
 
-    friend inline bool operator>=(const negatable& u,           const negatable& v)          { return ((u.data >= v.data) && (!(u.is_quiet_nan() && v.is_quiet_nan()))); }
+    friend inline bool      operator< (const negatable& u,            const char& v)               { return (u.data < negatable(v).data); }
+    friend inline bool      operator< (const negatable& u,            const short& v)              { return (u.data < negatable(v).data); }
+    friend inline bool      operator< (const negatable& u,            const int& v)                { return (u.data < negatable(v).data); }
+    friend inline bool      operator< (const negatable& u,            const long& v)               { return (u.data < negatable(v).data); }
+    friend inline bool      operator< (const negatable& u,            const long long& v)          { return (u.data < negatable(v).data); }
 
-    friend inline bool operator>=(const negatable& u,           const char& v)               { return (u.data >= negatable(v).data); }
-    friend inline bool operator>=(const negatable& u,           const short& v)              { return (u.data >= negatable(v).data); }
-    friend inline bool operator>=(const negatable& u,           const int& v)                { return (u.data >= negatable(v).data); }
-    friend inline bool operator>=(const negatable& u,           const long& v)               { return (u.data >= negatable(v).data); }
-    friend inline bool operator>=(const negatable& u,           const long long& v)          { return (u.data >= negatable(v).data); }
-    friend inline bool operator>=(const negatable& u,           const unsigned char& v)      { return (u.data >= negatable(v).data); }
-    friend inline bool operator>=(const negatable& u,           const unsigned short& v)     { return (u.data >= negatable(v).data); }
-    friend inline bool operator>=(const negatable& u,           const unsigned int& v)       { return (u.data >= negatable(v).data); }
-    friend inline bool operator>=(const negatable& u,           const unsigned long& v)      { return (u.data >= negatable(v).data); }
-    friend inline bool operator>=(const negatable& u,           const unsigned long long& v) { return (u.data >= negatable(v).data); }
+    friend inline bool      operator< (const negatable& u,            const unsigned char& v)      { return (u.data < negatable(v).data); }
+    friend inline bool      operator< (const negatable& u,            const unsigned short& v)     { return (u.data < negatable(v).data); }
+    friend inline bool      operator< (const negatable& u,            const unsigned int& v)       { return (u.data < negatable(v).data); }
+    friend inline bool      operator< (const negatable& u,            const unsigned long& v)      { return (u.data < negatable(v).data); }
+    friend inline bool      operator< (const negatable& u,            const unsigned long long& v) { return (u.data < negatable(v).data); }
 
-    friend inline bool operator>=(const negatable& u,           const float& v)              { return ((u.data >= negatable(v).data) && (!(u.is_quiet_nan() && (v != v)))); }
-    friend inline bool operator>=(const negatable& u,           const double& v)             { return ((u.data >= negatable(v).data) && (!(u.is_quiet_nan() && (v != v)))); }
-    friend inline bool operator>=(const negatable& u,           const long double& v)        { return ((u.data >= negatable(v).data) && (!(u.is_quiet_nan() && (v != v)))); }
+    friend inline bool      operator< (const negatable& u,            const float& v)              { return ((u.data < negatable(v).data) || (negatable::is_quiet_nan(u) && (negatable::is_quiet_nan(v)))); }
+    friend inline bool      operator< (const negatable& u,            const double& v)             { return ((u.data < negatable(v).data) || (negatable::is_quiet_nan(u) && (negatable::is_quiet_nan(v)))); }
+    friend inline bool      operator< (const negatable& u,            const long double& v)        { return ((u.data < negatable(v).data) || (negatable::is_quiet_nan(u) && (negatable::is_quiet_nan(v)))); }
 
-    friend inline bool operator>=(const char& u,                const negatable& v)          { return (negatable(u).data >= v.data); }
-    friend inline bool operator>=(const short& u,               const negatable& v)          { return (negatable(u).data >= v.data); }
-    friend inline bool operator>=(const int& u,                 const negatable& v)          { return (negatable(u).data >= v.data); }
-    friend inline bool operator>=(const long& u,                const negatable& v)          { return (negatable(u).data >= v.data); }
-    friend inline bool operator>=(const long long& u,           const negatable& v)          { return (negatable(u).data >= v.data); }
-    friend inline bool operator>=(const unsigned char& u,       const negatable& v)          { return (negatable(u).data >= v.data); }
-    friend inline bool operator>=(const unsigned short& u,      const negatable& v)          { return (negatable(u).data >= v.data); }
-    friend inline bool operator>=(const unsigned int& u,        const negatable& v)          { return (negatable(u).data >= v.data); }
-    friend inline bool operator>=(const unsigned long& u,       const negatable& v)          { return (negatable(u).data >= v.data); }
-    friend inline bool operator>=(const unsigned long long& u,  const negatable& v)          { return (negatable(u).data >= v.data); }
+    friend inline bool      operator< (const char& u,                 const negatable& v)          { return (negatable(u).data < v.data); }
+    friend inline bool      operator< (const short& u,                const negatable& v)          { return (negatable(u).data < v.data); }
+    friend inline bool      operator< (const int& u,                  const negatable& v)          { return (negatable(u).data < v.data); }
+    friend inline bool      operator< (const long& u,                 const negatable& v)          { return (negatable(u).data < v.data); }
+    friend inline bool      operator< (const long long& u,            const negatable& v)          { return (negatable(u).data < v.data); }
 
-    friend inline bool operator>=(const float& u,               const negatable& v)          { return ((negatable(u).data >= v.data) && (!((u != u) && v.is_quiet_nan()))); }
-    friend inline bool operator>=(const double& u,              const negatable& v)          { return ((negatable(u).data >= v.data) && (!((u != u) && v.is_quiet_nan()))); }
-    friend inline bool operator>=(const double long& u,         const negatable& v)          { return ((negatable(u).data >= v.data) && (!((u != u) && v.is_quiet_nan()))); }
+    friend inline bool      operator< (const unsigned char& u,        const negatable& v)          { return (negatable(u).data < v.data); }
+    friend inline bool      operator< (const unsigned short& u,       const negatable& v)          { return (negatable(u).data < v.data); }
+    friend inline bool      operator< (const unsigned int& u,         const negatable& v)          { return (negatable(u).data < v.data); }
+    friend inline bool      operator< (const unsigned long& u,        const negatable& v)          { return (negatable(u).data < v.data); }
+    friend inline bool      operator< (const unsigned  long long& u,  const negatable& v)          { return (negatable(u).data < v.data); }
 
-    friend inline bool operator<=(const negatable& u,           const negatable& v)          { return ((u.data <= v.data) || (u.is_quiet_nan() && v.is_quiet_nan())); }
+    friend inline bool      operator< (const float& u,                const negatable& v)          { return ((negatable(u).data < v.data) || ((negatable::is_quiet_nan(u)) && negatable::is_quiet_nan(v))); }
+    friend inline bool      operator< (const double& u,               const negatable& v)          { return ((negatable(u).data < v.data) || ((negatable::is_quiet_nan(u)) && negatable::is_quiet_nan(v))); }
+    friend inline bool      operator< (const double long& u,          const negatable& v)          { return ((negatable(u).data < v.data) || ((negatable::is_quiet_nan(u)) && negatable::is_quiet_nan(v))); }
 
-    friend inline bool operator<=(const negatable& u,           const char& v)               { return (u.data <= negatable(v).data); }
-    friend inline bool operator<=(const negatable& u,           const short& v)              { return (u.data <= negatable(v).data); }
-    friend inline bool operator<=(const negatable& u,           const int& v)                { return (u.data <= negatable(v).data); }
-    friend inline bool operator<=(const negatable& u,           const long& v)               { return (u.data <= negatable(v).data); }
-    friend inline bool operator<=(const negatable& u,           const long long& v)          { return (u.data <= negatable(v).data); }
-    friend inline bool operator<=(const negatable& u,           const unsigned char& v)      { return (u.data <= negatable(v).data); }
-    friend inline bool operator<=(const negatable& u,           const unsigned short& v)     { return (u.data <= negatable(v).data); }
-    friend inline bool operator<=(const negatable& u,           const unsigned int& v)       { return (u.data <= negatable(v).data); }
-    friend inline bool operator<=(const negatable& u,           const unsigned long& v)      { return (u.data <= negatable(v).data); }
-    friend inline bool operator<=(const negatable& u,           const unsigned long long& v) { return (u.data <= negatable(v).data); }
+    friend inline bool      operator>=(const negatable& u,            const negatable& v)          { return ((u.data >= v.data) && (!(negatable::is_quiet_nan(u) && negatable::is_quiet_nan(v)))); }
 
-    friend inline bool operator<=(const negatable& u,           const float& v)              { return ((u.data <= negatable(v).data) || (u.is_quiet_nan() && (v != v))); }
-    friend inline bool operator<=(const negatable& u,           const double& v)             { return ((u.data <= negatable(v).data) || (u.is_quiet_nan() && (v != v))); }
-    friend inline bool operator<=(const negatable& u,           const long double& v)        { return ((u.data <= negatable(v).data) || (u.is_quiet_nan() && (v != v))); }
+    friend inline bool      operator>=(const negatable& u,            const char& v)               { return (u.data >= negatable(v).data); }
+    friend inline bool      operator>=(const negatable& u,            const short& v)              { return (u.data >= negatable(v).data); }
+    friend inline bool      operator>=(const negatable& u,            const int& v)                { return (u.data >= negatable(v).data); }
+    friend inline bool      operator>=(const negatable& u,            const long& v)               { return (u.data >= negatable(v).data); }
+    friend inline bool      operator>=(const negatable& u,            const long long& v)          { return (u.data >= negatable(v).data); }
 
-    friend inline bool operator<=(const char& u,                const negatable& v)          { return (negatable(u).data <= v.data); }
-    friend inline bool operator<=(const short& u,               const negatable& v)          { return (negatable(u).data <= v.data); }
-    friend inline bool operator<=(const int& u,                 const negatable& v)          { return (negatable(u).data <= v.data); }
-    friend inline bool operator<=(const long& u,                const negatable& v)          { return (negatable(u).data <= v.data); }
-    friend inline bool operator<=(const long long& u,           const negatable& v)          { return (negatable(u).data <= v.data); }
-    friend inline bool operator<=(const unsigned char& u,       const negatable& v)          { return (negatable(u).data <= v.data); }
-    friend inline bool operator<=(const unsigned short& u,      const negatable& v)          { return (negatable(u).data <= v.data); }
-    friend inline bool operator<=(const unsigned int& u,        const negatable& v)          { return (negatable(u).data <= v.data); }
-    friend inline bool operator<=(const unsigned long& u,       const negatable& v)          { return (negatable(u).data <= v.data); }
-    friend inline bool operator<=(const unsigned  long long& u, const negatable& v)          { return (negatable(u).data <= v.data); }
+    friend inline bool      operator>=(const negatable& u,            const unsigned char& v)      { return (u.data >= negatable(v).data); }
+    friend inline bool      operator>=(const negatable& u,            const unsigned short& v)     { return (u.data >= negatable(v).data); }
+    friend inline bool      operator>=(const negatable& u,            const unsigned int& v)       { return (u.data >= negatable(v).data); }
+    friend inline bool      operator>=(const negatable& u,            const unsigned long& v)      { return (u.data >= negatable(v).data); }
+    friend inline bool      operator>=(const negatable& u,            const unsigned long long& v) { return (u.data >= negatable(v).data); }
 
-    friend inline bool operator<=(const float& u,               const negatable& v)          { return ((negatable(u).data <= v.data) || ((u != u) && v.is_quiet_nan())); }
-    friend inline bool operator<=(const double& u,              const negatable& v)          { return ((negatable(u).data <= v.data) || ((u != u) && v.is_quiet_nan())); }
-    friend inline bool operator<=(const double long& u,         const negatable& v)          { return ((negatable(u).data <= v.data) || ((u != u) && v.is_quiet_nan())); }
+    friend inline bool      operator>=(const negatable& u,            const float& v)              { return ((u.data >= negatable(v).data) && (!(negatable::is_quiet_nan(u) && (negatable::is_quiet_nan(v))))); }
+    friend inline bool      operator>=(const negatable& u,            const double& v)             { return ((u.data >= negatable(v).data) && (!(negatable::is_quiet_nan(u) && (negatable::is_quiet_nan(v))))); }
+    friend inline bool      operator>=(const negatable& u,            const long double& v)        { return ((u.data >= negatable(v).data) && (!(negatable::is_quiet_nan(u) && (negatable::is_quiet_nan(v))))); }
+
+    friend inline bool      operator>=(const char& u,                 const negatable& v)          { return (negatable(u).data >= v.data); }
+    friend inline bool      operator>=(const short& u,                const negatable& v)          { return (negatable(u).data >= v.data); }
+    friend inline bool      operator>=(const int& u,                  const negatable& v)          { return (negatable(u).data >= v.data); }
+    friend inline bool      operator>=(const long& u,                 const negatable& v)          { return (negatable(u).data >= v.data); }
+    friend inline bool      operator>=(const long long& u,            const negatable& v)          { return (negatable(u).data >= v.data); }
+
+    friend inline bool      operator>=(const unsigned char& u,        const negatable& v)          { return (negatable(u).data >= v.data); }
+    friend inline bool      operator>=(const unsigned short& u,       const negatable& v)          { return (negatable(u).data >= v.data); }
+    friend inline bool      operator>=(const unsigned int& u,         const negatable& v)          { return (negatable(u).data >= v.data); }
+    friend inline bool      operator>=(const unsigned long& u,        const negatable& v)          { return (negatable(u).data >= v.data); }
+    friend inline bool      operator>=(const unsigned long long& u,   const negatable& v)          { return (negatable(u).data >= v.data); }
+
+    friend inline bool      operator>=(const float& u,                const negatable& v)          { return ((negatable(u).data >= v.data) && (!((negatable::is_quiet_nan(u)) && negatable::is_quiet_nan(v)))); }
+    friend inline bool      operator>=(const double& u,               const negatable& v)          { return ((negatable(u).data >= v.data) && (!((negatable::is_quiet_nan(u)) && negatable::is_quiet_nan(v)))); }
+    friend inline bool      operator>=(const double long& u,          const negatable& v)          { return ((negatable(u).data >= v.data) && (!((negatable::is_quiet_nan(u)) && negatable::is_quiet_nan(v)))); }
+
+    friend inline bool      operator<=(const negatable& u,            const negatable& v)          { return ((u.data <= v.data) || (negatable::is_quiet_nan(u) && negatable::is_quiet_nan(v))); }
+
+    friend inline bool      operator<=(const negatable& u,            const char& v)               { return (u.data <= negatable(v).data); }
+    friend inline bool      operator<=(const negatable& u,            const short& v)              { return (u.data <= negatable(v).data); }
+    friend inline bool      operator<=(const negatable& u,            const int& v)                { return (u.data <= negatable(v).data); }
+    friend inline bool      operator<=(const negatable& u,            const long& v)               { return (u.data <= negatable(v).data); }
+    friend inline bool      operator<=(const negatable& u,            const long long& v)          { return (u.data <= negatable(v).data); }
+
+    friend inline bool      operator<=(const negatable& u,            const unsigned char& v)      { return (u.data <= negatable(v).data); }
+    friend inline bool      operator<=(const negatable& u,            const unsigned short& v)     { return (u.data <= negatable(v).data); }
+    friend inline bool      operator<=(const negatable& u,            const unsigned int& v)       { return (u.data <= negatable(v).data); }
+    friend inline bool      operator<=(const negatable& u,            const unsigned long& v)      { return (u.data <= negatable(v).data); }
+    friend inline bool      operator<=(const negatable& u,            const unsigned long long& v) { return (u.data <= negatable(v).data); }
+
+    friend inline bool      operator<=(const negatable& u,            const float& v)              { return ((u.data <= negatable(v).data) || (negatable::is_quiet_nan(u) && (negatable::is_quiet_nan(v)))); }
+    friend inline bool      operator<=(const negatable& u,            const double& v)             { return ((u.data <= negatable(v).data) || (negatable::is_quiet_nan(u) && (negatable::is_quiet_nan(v)))); }
+    friend inline bool      operator<=(const negatable& u,            const long double& v)        { return ((u.data <= negatable(v).data) || (negatable::is_quiet_nan(u) && (negatable::is_quiet_nan(v)))); }
+
+    friend inline bool      operator<=(const char& u,                 const negatable& v)          { return (negatable(u).data <= v.data); }
+    friend inline bool      operator<=(const short& u,                const negatable& v)          { return (negatable(u).data <= v.data); }
+    friend inline bool      operator<=(const int& u,                  const negatable& v)          { return (negatable(u).data <= v.data); }
+    friend inline bool      operator<=(const long& u,                 const negatable& v)          { return (negatable(u).data <= v.data); }
+    friend inline bool      operator<=(const long long& u,            const negatable& v)          { return (negatable(u).data <= v.data); }
+
+    friend inline bool      operator<=(const unsigned char& u,        const negatable& v)          { return (negatable(u).data <= v.data); }
+    friend inline bool      operator<=(const unsigned short& u,       const negatable& v)          { return (negatable(u).data <= v.data); }
+    friend inline bool      operator<=(const unsigned int& u,         const negatable& v)          { return (negatable(u).data <= v.data); }
+    friend inline bool      operator<=(const unsigned long& u,        const negatable& v)          { return (negatable(u).data <= v.data); }
+    friend inline bool      operator<=(const unsigned long long& u,   const negatable& v)          { return (negatable(u).data <= v.data); }
+
+    friend inline bool      operator<=(const float& u,                const negatable& v)          { return ((negatable(u).data <= v.data) || ((negatable::is_quiet_nan(u)) && negatable::is_quiet_nan(v))); }
+    friend inline bool      operator<=(const double& u,               const negatable& v)          { return ((negatable(u).data <= v.data) || ((negatable::is_quiet_nan(u)) && negatable::is_quiet_nan(v))); }
+    friend inline bool      operator<=(const double long& u,          const negatable& v)          { return ((negatable(u).data <= v.data) || ((negatable::is_quiet_nan(u)) && negatable::is_quiet_nan(v))); }
 
     friend inline negatable fabs(const negatable& x)
     {
@@ -788,13 +838,13 @@
 
     friend inline negatable sqrt(const negatable& x)
     {
-      if(x != x)
+      if(negatable::is_quiet_nan(x))
       {
         return negatable::value_quiet_nan();
       }
       else if(x > 0)
       {
-        // TBD: Use a more efficient algorithm (if one can be found).
+        // TBD: Use a more efficient square root algorithm (if one can be found).
         return exp(log(x) / 2);
       }
       else if(x < 0)
@@ -809,7 +859,7 @@
 
     friend inline negatable exp(const negatable& x)
     {
-      if(x != x)
+      if(negatable::is_quiet_nan(x))
       {
         return negatable::value_quiet_nan();
       }
@@ -822,12 +872,12 @@
         // From Wolfram's Alpha or Mathematica(R):
         // Fit[N[Table[{x, Exp[x] - 1}, {x, -Log[2], Log[2], 1/180}], 50], {x, x^2, x^3, x^4, x^5, x^6}, x]
         negatable sum  =   1
-                         + alpha * (negatable(nothing(), 16777246)
-                         + alpha * (negatable(nothing(),  8388613)
-                         + alpha * (negatable(nothing(),  2795628)
-                         + alpha * (negatable(nothing(),   698971)
-                         + alpha * (negatable(nothing(),   142422)
-                         + alpha * (negatable(nothing(),    23635)))))));
+                         + alpha * (negatable(nothing(), make_unsigned_constant(16777246))
+                         + alpha * (negatable(nothing(), make_unsigned_constant( 8388613))
+                         + alpha * (negatable(nothing(), make_unsigned_constant( 2795628))
+                         + alpha * (negatable(nothing(), make_unsigned_constant(  698971))
+                         + alpha * (negatable(nothing(), make_unsigned_constant(  142422))
+                         + alpha * (negatable(nothing(), make_unsigned_constant(   23635))))))));
 
         return negatable(nothing(), sum.data << n);
       }
@@ -843,7 +893,7 @@
 
     friend inline negatable log(const negatable& x)
     {
-      if(x != x)
+      if(negatable::is_quiet_nan(x))
       {
         return negatable::value_quiet_nan();
       }
@@ -855,7 +905,7 @@
 
           const value_type n = static_cast<value_type>(xx / 2);
 
-          // TBD: Is argument scaling here correct, or should an offset be used?
+          // TBD: Is argument scaling here correct, or would it be better to use a constant offset?
           xx.data >>= n;
 
           --xx;
@@ -888,7 +938,7 @@
 
     friend inline negatable sin(const negatable& x)
     {
-      if(x != x)
+      if(negatable::is_quiet_nan(x))
       {
         return negatable::value_quiet_nan();
       }
@@ -900,7 +950,7 @@
 
     friend inline negatable cos(const negatable& x)
     {
-      if(x != x)
+      if(negatable::is_quiet_nan(x))
       {
         return negatable::value_quiet_nan();
       }
@@ -938,7 +988,7 @@
 
     friend inline negatable tan(const negatable& x)
     {
-      if(x != x)
+      if(negatable::is_quiet_nan(x))
       {
         return negatable::value_quiet_nan();
       }
@@ -948,21 +998,9 @@
       }
     }
 
-    friend inline negatable cot(const negatable& x)
-    {
-      if(x != x)
-      {
-        return negatable::value_quiet_nan();
-      }
-      else
-      {
-        return cos(x) / sin(x);
-      }
-    }
-
     friend inline negatable asin(const negatable& x)
     {
-      if(x != x)
+      if(negatable::is_quiet_nan(x))
       {
         return negatable::value_quiet_nan();
       }
@@ -994,7 +1032,7 @@
 
     friend inline negatable acos(const negatable& x)
     {
-      if(x != x)
+      if(negatable::is_quiet_nan(x))
       {
         return negatable::value_quiet_nan();
       }
@@ -1006,7 +1044,7 @@
 
     friend inline negatable atan(const negatable& x)
     {
-      if(x != x)
+      if(negatable::is_quiet_nan(x))
       {
         return negatable::value_quiet_nan();
       }
@@ -1039,13 +1077,13 @@
 
     friend inline negatable sinh(const negatable& x)
     {
-      if(x != x)
+      if(negatable::is_quiet_nan(x))
       {
         return negatable::value_quiet_nan();
       }
       else
       {
-        // TBD: Small argument approximation.
+        // TBD: Use a small argument approximation for small arguments.
         const negatable ep = exp(x);
         const negatable em = 1 / ep;
 
@@ -1055,7 +1093,7 @@
 
     friend inline negatable cosh(const negatable& x)
     {
-      if(x != x)
+      if(negatable::is_quiet_nan(x))
       {
         return negatable::value_quiet_nan();
       }
@@ -1070,7 +1108,7 @@
 
     friend inline negatable tanh(const negatable& x)
     {
-      if(x != x)
+      if(negatable::is_quiet_nan(x))
       {
         return negatable::value_quiet_nan();
       }
@@ -1083,24 +1121,9 @@
       }
     }
 
-    friend inline negatable coth(const negatable& x)
-    {
-      if(x != x)
-      {
-        return negatable::value_quiet_nan();
-      }
-      else
-      {
-        const negatable ep = exp(x);
-        const negatable em = 1 / ep;
-
-        return (ep + em) / (ep - em);
-      }
-    }
-
     friend inline negatable asinh(const negatable& x)
     {
-      if(x != x)
+      if(negatable::is_quiet_nan(x))
       {
         return negatable::value_quiet_nan();
       }
@@ -1112,7 +1135,7 @@
 
     friend inline negatable acosh(const negatable& x)
     {
-      if(x != x)
+      if(negatable::is_quiet_nan(x))
       {
         return negatable::value_quiet_nan();
       }
@@ -1124,7 +1147,7 @@
 
     friend inline negatable atanh(const negatable& x)
     {
-      if(x != x)
+      if(negatable::is_quiet_nan(x))
       {
         return negatable::value_quiet_nan();
       }
@@ -1137,7 +1160,7 @@
 
   } } // namespace math::fixed_point
 
-  // Implement std::numeric_limits for the negatable class.
+  // Provide a specialization of std::numeric_limits<negatable>.
   namespace std
   {
     template<const int range,
@@ -1174,12 +1197,12 @@
       static const bool                    tinyness_before   = false;
       static const std::float_round_style  round_style       = std::round_toward_zero;
 
-      static negatable_type (min)() throw()                  { return negatable_type(); }
-      static negatable_type (max)() throw()                  { return negatable_type(); }
-      static negatable_type lowest() throw()                 { return negatable_type(); }
-      static negatable_type epsilon() throw()                { return negatable_type(); }
-      static negatable_type round_error() throw()            { return negatable_type(); }
-      static negatable_type infinity() throw()               { return negatable_type::value_quiet_infinity(); }
+      static negatable_type (min)() throw()                  { return negatable_type::value_min(); }
+      static negatable_type (max)() throw()                  { return negatable_type::value_max(); }
+      static negatable_type lowest() throw()                 { return negatable_type::value_min(); }
+      static negatable_type epsilon() throw()                { return negatable_type::value_epsilon(); }
+      static negatable_type round_error() throw()            { return negatable_type(1) / 2; }
+      static negatable_type infinity() throw()               { return negatable_type::value_infinity(); }
       static negatable_type quiet_NaN() throw()              { return negatable_type::value_quiet_nan(); }
     };
   } // namespace std
