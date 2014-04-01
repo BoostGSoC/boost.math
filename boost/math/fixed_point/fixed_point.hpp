@@ -166,7 +166,7 @@
   {
   public:
     static_assert(resolution < 0, "Error: the negatable class resolution must be fractional (negative).");
-    static_assert(-resolution < range - 1, "Error: the negatable class resolution exceeds the available range.");
+    static_assert(-resolution < (range - 1), "Error: the negatable class resolution exceeds the available range.");
 
     typedef typename math::fixed_point::detail::integer_type_helper<range>::exact_signed_type value_type;
 
@@ -823,13 +823,13 @@
 
     friend inline negatable floor(const negatable& x)
     {
-      // TBD: implement floor().
+      // TBD: Implement the floor() function.
       return negatable(0);
     }
 
     friend inline negatable ceil(const negatable& x)
     {
-      // TBD: implement ceil().
+      // TBD: Implement the ceil() function.
       return negatable(0);
     }
 
@@ -844,7 +844,7 @@
       }
       else if(x > 0)
       {
-        // TBD: Use a more efficient square root algorithm (if one can be found).
+        // TBD: Use a more efficient square root algorithm (if one can be found in GSoC).
         return exp(log(x) / 2);
       }
       else if(x < 0)
@@ -869,7 +869,7 @@
 
         const negatable alpha = x - (n * negatable(nothing(), make_unsigned_constant(11629079)));
 
-        // From Wolfram's Alpha or Mathematica(R):
+        // Generate the coefficients from Wolfram's Alpha or Mathematica(R).
         // Fit[N[Table[{x, Exp[x] - 1}, {x, -Log[2], Log[2], 1/180}], 50], {x, x^2, x^3, x^4, x^5, x^6}, x]
         negatable sum  =   1
                          + alpha * (negatable(nothing(), make_unsigned_constant(16777246))
@@ -1084,6 +1084,7 @@
       else
       {
         // TBD: Use a small argument approximation for small arguments.
+        // TBD: See these implementation details in the new <boost/cstdfloat.hpp> stuff.
         const negatable ep = exp(x);
         const negatable em = 1 / ep;
 

@@ -149,11 +149,9 @@ int main()
   std::cout << "Sin: "   << '\n' << sin  (fixed_point_type(2))        << '\n' << std::sin(2.0)            << std::endl;
   std::cout << "Cos: "   << '\n' << cos  (fixed_point_type(2))        << '\n' << std::cos(2.0)            << std::endl;
   std::cout << "Tan: "   << '\n' << tan  (fixed_point_type(2))        << '\n' << std::tan(2.0)            << std::endl;
-  std::cout << "Cot: "   << '\n' << cot  (fixed_point_type(2))        << '\n' << 1.0 / std::tan(2.0)      << std::endl;
   std::cout << "Asin: "  << '\n' << asin (fixed_point_type(0.5))      << '\n' << std::asin(0.5)           << std::endl;
   std::cout << "Acos: "  << '\n' << acos (fixed_point_type(0.5))      << '\n' << std::acos(0.5)           << std::endl;
   std::cout << "Atan: "  << '\n' << atan (fixed_point_type(3.14159))  << '\n' << std::atan(3.14159)       << std::endl;
-//  std::cout << "Acot: "  << '\n' << acot (fixed_point_type(3.14159))  << '\n' << std::atan(1.0 / 3.14159) << std::endl;
   std::cout << "Sinh: "  << '\n' << sinh (fixed_point_type(3.14159))  << '\n' << std::sinh(3.14159)       << std::endl;
   std::cout << "Cosh: "  << '\n' << cosh (fixed_point_type(3.14159))  << '\n' << std::cosh(3.14159)       << std::endl;
   std::cout << "Tanh: "  << '\n' << tanh (fixed_point_type(3.14159))  << '\n' << std::tanh(3.14159)       << std::endl;
