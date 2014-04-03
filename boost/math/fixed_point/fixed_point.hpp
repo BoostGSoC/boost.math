@@ -209,8 +209,8 @@
   class negatable
   {
   public:
-    static_assert( resolution < 0,         "Error: the negatable class resolution must be fractional (negative).");
-    static_assert(-resolution < range - 1, "Error: the negatable class resolution exceeds the available range.");
+    static_assert( resolution <  0,          "Error: the negatable class resolution must be fractional (negative).");
+    static_assert(-resolution < (range - 1), "Error: the negatable class resolution exceeds the available range.");
 
     typedef typename math::fixed_point::detail::integer_type_helper<range>::exact_signed_type value_type;
 
@@ -279,12 +279,6 @@
     negatable& operator=(const float& f)              { data = value_type(f * radix_split_value<float>()); return *this; }
     negatable& operator=(const double& f)             { data = value_type(f * radix_split_value<double>()); return *this; }
     negatable& operator=(const long double& f)        { data = value_type(f * radix_split_value<long double>()); return *this; }
-
-    negatable& operator++()   { data += value_type(unsigned_small_type(1) << radix_split); return *this; }
-    negatable& operator--()   { data -= value_type(unsigned_small_type(1) << radix_split); return *this; }
-
-    negatable operator++(int) { const negatable tmp(*this); data += value_type(unsigned_small_type(1) << radix_split); return tmp; }
-    negatable operator--(int) { const negatable tmp(*this); data -= value_type(unsigned_small_type(1) << radix_split); return tmp; }
 
     negatable& operator+=(const negatable& v)
     {
@@ -439,6 +433,12 @@
 
       return *this;
     }
+
+    negatable& operator++()   { (*this) += negatable(1); return *this; }
+    negatable& operator--()   { (*this) -= negatable(1); return *this; }
+
+    negatable operator++(int) { const negatable tmp(*this); (*this) += negatable(1); return tmp; }
+    negatable operator--(int) { const negatable tmp(*this); (*this) -= negatable(1); return tmp; }
 
     negatable& operator+=(const char& n)               { return (*this) += negatable(n); }
     negatable& operator+=(const short& n)              { return (*this) += negatable(n); }
