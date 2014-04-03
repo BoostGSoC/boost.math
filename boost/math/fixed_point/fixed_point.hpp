@@ -19,6 +19,7 @@
   #include <cstdint>
   #include <type_traits>
   #include <boost/multiprecision/cpp_int.hpp>
+  #include <boost/multiprecision/cpp_bin_float.hpp>
 
   namespace math { namespace fixed_point {
 
@@ -186,20 +187,6 @@
       }
     };
 
-/*
-    template<class arithmetic_type,
-             const int radix_split>
-    struct radix_split_maker<arithmetic_type,
-                             radix_split,
-                             typename std::enable_if<std::is_integral<arithmetic_type>::value>::type>
-    {
-      static arithmetic_type value()
-      {
-        return arithmetic_type(arithmetic_type(1) << radix_split);
-      }
-    };
-*/
-
     template<class arithmetic_type,
              const int radix_split>
     struct radix_split_maker<arithmetic_type,
@@ -226,6 +213,20 @@
     static_assert(-resolution < range - 1, "Error: the negatable class resolution exceeds the available range.");
 
     typedef typename math::fixed_point::detail::integer_type_helper<range>::exact_signed_type value_type;
+
+    typedef typename math::fixed_point::detail::integer_type_helper<(-resolution < 16 ? 16 : -resolution)>::exact_signed_type floating_point_representation_exponent_type;
+
+    typedef boost::multiprecision::backends::cpp_bin_float<range,
+                                                            boost::multiprecision::backends::digit_base_2,
+                                                            void,
+                                                            int,
+                                                            -126,
+                                                            +127>
+    floating_point_representation_backend_type;
+
+    typedef boost::multiprecision::number<floating_point_representation_backend_type,
+                                          boost::multiprecision::et_off>
+    floating_point_representation_type;
 
     negatable() : data() { }
 
@@ -691,11 +692,12 @@
       std::stringstream ss;
       ss << x.data;
 
-      long double ld;
-      ss >> ld;
-      ld /= radix_split_value<long double>();
+      floating_point_representation_type fp_rep;
 
-      ostr << ld;
+      ss >> fp_rep;
+
+      fp_rep /= ldexp(floating_point_representation_type(1), radix_split);
+      ostr << fp_rep;
 
       return (os << ostr.str());
     }
