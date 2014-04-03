@@ -6,7 +6,7 @@
 
 #include <boost/math/fixed_point/fixed_point.hpp>
 
-typedef math::fixed_point::negatable<32, -24> fixed_point_type;
+typedef math::fixed_point::negatable<64, -52> fixed_point_type;
 
 int main()
 {
@@ -23,8 +23,8 @@ int main()
   flo_b =     127.0F +     1.0F /     3.0F;
   dou_b =     127.0  +     1.0  /     3.0;
 
-  std::cout << "Testing range for math::fixed_point::negatable<32, -24> is: [64, 128)" << std::endl;
-  std::cout << "Precision Comparison:" << std::setprecision(std::numeric_limits<long double>::digits10) << std::endl;
+  std::cout << "Testing range for math::fixed_point::negatable<> is: " << std::endl;
+  std::cout << "Precision Comparison:" << std::setprecision(std::numeric_limits<fixed_point_type::floating_point_representation_type>::digits10) << std::endl;
   std::cout << "Fixed: a=" << fxp_a << "; b=" << fxp_b << std::endl;
   std::cout << "Float: a=" << flo_a << "; b=" << flo_b << std::endl;
   std::cout << "Doubl: a=" << dou_a << "; b=" << dou_b << std::endl;
@@ -164,4 +164,5 @@ int main()
   std::cout << "1 - Eps: "  << fixed_point_type(1) - std::numeric_limits<fixed_point_type>::epsilon() << std::endl;
   std::cout << "Min:     "  << (std::numeric_limits<fixed_point_type>::min)()   << std::endl;
   std::cout << "Max:     "  << (std::numeric_limits<fixed_point_type>::max)()   << std::endl;
+  std::cout << "Lowest:  "  <<  std::numeric_limits<fixed_point_type>::lowest() << std::endl;
 }

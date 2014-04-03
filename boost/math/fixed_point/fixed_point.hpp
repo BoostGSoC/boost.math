@@ -220,8 +220,8 @@
                                                             boost::multiprecision::backends::digit_base_2,
                                                             void,
                                                             int,
-                                                            -126,
-                                                            +127>
+                                                            -1022,
+                                                            +1033>
     floating_point_representation_backend_type;
 
     typedef boost::multiprecision::number<floating_point_representation_backend_type,
@@ -647,6 +647,8 @@
 
     static negatable pow2(negatable& p)
     {
+      // TBD: Use a simple left shift of 1 here.
+      // TBD: VS2012 has trouble with some cpp_int conversions, so we use this complicated pow2 scheme here.
       if(p < 0)
       {
         negatable pm(-p);
@@ -655,8 +657,10 @@
       }
       else
       {
-        if(p == 1) { return negatable(2); }
-        if(p == 2) { return negatable(4); }
+        if     (p == 1) { return negatable( 2); }
+        else if(p == 2) { return negatable( 4); }
+        else if(p == 3) { return negatable( 8); }
+        else if(p == 4) { return negatable(16); }
 
         negatable result(((p.data & radix_split_value<value_type>()) != 0) ? negatable(2) : negatable(1));
         negatable x2    (2);
@@ -696,7 +700,9 @@
 
       ss >> fp_rep;
 
-      fp_rep /= ldexp(floating_point_representation_type(1), radix_split);
+      const floating_point_representation_type radix_scale = ldexp(floating_point_representation_type(1), radix_split);
+      fp_rep /= radix_scale;
+
       ostr << fp_rep;
 
       return (os << ostr.str());
