@@ -168,8 +168,8 @@
     template<> struct integer_type_helper<63U> { typedef std::int64_t exact_signed_type; typedef std::uint64_t exact_unsigned_type; };
     template<> struct integer_type_helper<64U> { typedef std::int64_t exact_signed_type; typedef std::uint64_t exact_unsigned_type; };
 
-    template<class integral_source_type,
-             class other_destination_type>
+    template<class other_destination_type,
+             class integral_source_type>
     other_destination_type convert_to(const integral_source_type& source)
     {
       return static_cast<other_destination_type>(source);
@@ -186,6 +186,7 @@
       }
     };
 
+/*
     template<class arithmetic_type,
              const int radix_split>
     struct radix_split_maker<arithmetic_type,
@@ -197,6 +198,7 @@
         return arithmetic_type(arithmetic_type(1) << radix_split);
       }
     };
+*/
 
     template<class arithmetic_type,
              const int radix_split>
@@ -367,7 +369,7 @@
       {
         unsigned_large_type result((!u_is_neg) ? data : -data);
 
-        result *= ((!v_is_neg) ? v.data : -v.data);
+        result *= unsigned_large_type((!v_is_neg) ? v.data : -v.data);
 
         result >>= radix_split;
 
@@ -377,7 +379,7 @@
         }
         else
         {
-          data = math::fixed_point::detail::convert_to<unsigned_large_type, value_type>(result);
+          data = math::fixed_point::detail::convert_to<value_type>(result);
         }
       }
 
@@ -420,7 +422,7 @@
 
         result <<= radix_split;
 
-        result /= ((!v_is_neg) ? v.data : -v.data);
+        result /= unsigned_large_type((!v_is_neg) ? v.data : -v.data);
 
         if(result > unsigned_large_type(value_max().data))
         {
@@ -428,7 +430,7 @@
         }
         else
         {
-          data = math::fixed_point::detail::convert_to<unsigned_large_type, value_type>(result);
+          data = math::fixed_point::detail::convert_to<value_type>(result);
         }
 
         if(result_is_neg) { data = -data; }
@@ -493,29 +495,29 @@
     negatable& operator/=(const double& f)             { return (*this) /= negatable(f); }
     negatable& operator/=(const long double& f)        { return (*this) /= negatable(f); }
 
-    operator char()                                    { return math::fixed_point::detail::convert_to<value_type, char>     (data / radix_split_value<value_type>()); }
-    operator short()                                   { return math::fixed_point::detail::convert_to<value_type, short>    (data / radix_split_value<value_type>()); }
-    operator int()                                     { return math::fixed_point::detail::convert_to<value_type, int>      (data / radix_split_value<value_type>()); }
-    operator long()                                    { return math::fixed_point::detail::convert_to<value_type, long>     (data / radix_split_value<value_type>()); }
-    operator long long()                               { return math::fixed_point::detail::convert_to<value_type, long long>(data / radix_split_value<value_type>()); }
+    operator char()                                    { return math::fixed_point::detail::convert_to<char>     (data / radix_split_value<value_type>()); }
+    operator short()                                   { return math::fixed_point::detail::convert_to<short>    (data / radix_split_value<value_type>()); }
+    operator int()                                     { return math::fixed_point::detail::convert_to<int>      (data / radix_split_value<value_type>()); }
+    operator long()                                    { return math::fixed_point::detail::convert_to<long>     (data / radix_split_value<value_type>()); }
+    operator long long()                               { return math::fixed_point::detail::convert_to<long long>(data / radix_split_value<value_type>()); }
 
-    operator unsigned char()                           { return math::fixed_point::detail::convert_to<value_type, unsigned char>     (unsigned_small_type(data) >> radix_split); }
-    operator unsigned short()                          { return math::fixed_point::detail::convert_to<value_type, unsigned short>    (unsigned_small_type(data) >> radix_split); }
-    operator unsigned int()                            { return math::fixed_point::detail::convert_to<value_type, unsigned int>      (unsigned_small_type(data) >> radix_split); }
-    operator unsigned long()                           { return math::fixed_point::detail::convert_to<value_type, unsigned long>     (unsigned_small_type(data) >> radix_split); }
-    operator unsigned long long()                      { return math::fixed_point::detail::convert_to<value_type, unsigned long long>(unsigned_small_type(data) >> radix_split); }
+    operator unsigned char()                           { return math::fixed_point::detail::convert_to<unsigned char>     (unsigned_small_type(data) >> radix_split); }
+    operator unsigned short()                          { return math::fixed_point::detail::convert_to<unsigned short>    (unsigned_small_type(data) >> radix_split); }
+    operator unsigned int()                            { return math::fixed_point::detail::convert_to<unsigned int>      (unsigned_small_type(data) >> radix_split); }
+    operator unsigned long()                           { return math::fixed_point::detail::convert_to<unsigned long>     (unsigned_small_type(data) >> radix_split); }
+    operator unsigned long long()                      { return math::fixed_point::detail::convert_to<unsigned long long>(unsigned_small_type(data) >> radix_split); }
 
-    operator char()      const                         { return math::fixed_point::detail::convert_to<value_type, char>     (data / radix_split_value<value_type>()); }
-    operator short()     const                         { return math::fixed_point::detail::convert_to<value_type, short>    (data / radix_split_value<value_type>()); }
-    operator int()       const                         { return math::fixed_point::detail::convert_to<value_type, int>      (data / radix_split_value<value_type>()); }
-    operator long()      const                         { return math::fixed_point::detail::convert_to<value_type, long>     (data / radix_split_value<value_type>()); }
-    operator long long() const                         { return math::fixed_point::detail::convert_to<value_type, long long>(data / radix_split_value<value_type>()); }
+    operator char()      const                         { return math::fixed_point::detail::convert_to<char>     (data / radix_split_value<value_type>()); }
+    operator short()     const                         { return math::fixed_point::detail::convert_to<short>    (data / radix_split_value<value_type>()); }
+    operator int()       const                         { return math::fixed_point::detail::convert_to<int>      (data / radix_split_value<value_type>()); }
+    operator long()      const                         { return math::fixed_point::detail::convert_to<long>     (data / radix_split_value<value_type>()); }
+    operator long long() const                         { return math::fixed_point::detail::convert_to<long long>(data / radix_split_value<value_type>()); }
 
-    operator unsigned char()      const                { return math::fixed_point::detail::convert_to<value_type, unsigned char>     (unsigned_small_type(data) >> radix_split); }
-    operator unsigned short()     const                { return math::fixed_point::detail::convert_to<value_type, unsigned short>    (unsigned_small_type(data) >> radix_split); }
-    operator unsigned int()       const                { return math::fixed_point::detail::convert_to<value_type, unsigned int>      (unsigned_small_type(data) >> radix_split); }
-    operator unsigned long()      const                { return math::fixed_point::detail::convert_to<value_type, unsigned long>     (unsigned_small_type(data) >> radix_split); }
-    operator unsigned long long() const                { return math::fixed_point::detail::convert_to<value_type, unsigned long long>(unsigned_small_type(data) >> radix_split); }
+    operator unsigned char()      const                { return math::fixed_point::detail::convert_to<unsigned char>     (unsigned_small_type(data) >> radix_split); }
+    operator unsigned short()     const                { return math::fixed_point::detail::convert_to<unsigned short>    (unsigned_small_type(data) >> radix_split); }
+    operator unsigned int()       const                { return math::fixed_point::detail::convert_to<unsigned int>      (unsigned_small_type(data) >> radix_split); }
+    operator unsigned long()      const                { return math::fixed_point::detail::convert_to<unsigned long>     (unsigned_small_type(data) >> radix_split); }
+    operator unsigned long long() const                { return math::fixed_point::detail::convert_to<unsigned long long>(unsigned_small_type(data) >> radix_split); }
 
     operator float()
     {
@@ -594,18 +596,27 @@
                                             || std::is_same<unsigned long,      unsigned_integral_type>::value
                                             || std::is_same<unsigned long long, unsigned_integral_type>::value>::type* = nullptr) : data(u) { }
 
-    static bool is_quiet_nan(const negatable& x) { return  (x.data  == value_quiet_nan()); }
-    static bool is_infinity (const negatable& x) { return ((x.data == value_infinity()) || (x.data == -value_infinity())); }
+    static bool is_quiet_nan(const negatable& x) { return  (x == value_quiet_nan()); }
+    static bool is_infinity (const negatable& x) { return ((x == value_infinity()) || (x == -value_infinity())); }
 
     static value_type make_unsigned_constant(const unsigned long long& x)
     {
       // TBD: Provide support for smaller ranges and larger resolutions.
       // TBD: This will involve the generation of constant coefficients used for transcendentals.
-      // TBD: Of course the magic number *24* will be removed when all is said and done.
-      static_assert(range > 24, "Error: the negatable class does not yet support such a small range.");
-      static_assert(-resolution <= 24, "Error: the negatable class does not yet support such a large resolution.");
+      // TBD: When all is said and done, the magic number *24* will be removed.
 
-      return x >> (24 - radix_split);
+      if(radix_split < 24)
+      {
+        return value_type(x >> (24 - radix_split));
+      }
+      else if(radix_split > 24)
+      {
+        return value_type(x << (radix_split - 24));
+      }
+      else
+      {
+        return value_type(x);
+      }
     }
 
     static negatable value_epsilon()
@@ -632,6 +643,40 @@
     static negatable value_max()       { return negatable(nothing(), (std::numeric_limits<value_type>::max)() - 3) ; }
     static negatable value_infinity()  { return negatable(nothing(), value_max().data - 2) ; }
     static negatable value_quiet_nan() { return negatable(nothing(), value_max().data - 1) ; }
+
+    static negatable pow2(negatable& p)
+    {
+      if(p < 0)
+      {
+        negatable pm(-p);
+
+        return 1 / pow2(pm);
+      }
+      else
+      {
+        if(p == 1) { return negatable(2); }
+        if(p == 2) { return negatable(4); }
+
+        negatable result(((p.data & radix_split_value<value_type>()) != 0) ? negatable(2) : negatable(1));
+        negatable x2    (2);
+
+        while((p /= 2) > 0)
+        {
+          // Square xn for each binary power.
+          x2 *= x2;
+
+          const bool has_binary_power = ((p.data & radix_split_value<value_type>()) != 0);
+
+          if(has_binary_power)
+          {
+            // Multiply the result with each binary power contained in the exponent.
+            result *= x2;
+          }
+        }
+
+        return result;
+      }
+    }
 
     friend class ::std::numeric_limits<negatable>;
 
@@ -993,8 +1038,14 @@
 
     friend inline negatable floor(const negatable& x)
     {
-      // TBD: implement floor().
-      return negatable(0);
+      const bool is_neg = (x < 0);
+
+      negatable result = ((!is_neg) ? x : -x);
+
+      result.data /= radix_split_value<value_type>();
+      result.data *= radix_split_value<value_type>();
+
+      return ((!is_neg) ? result : -result - 1);
     }
 
     friend inline negatable ceil(const negatable& x)
@@ -1032,7 +1083,7 @@
       }
       else if(x > 0)
       {
-        const value_type n = static_cast<value_type>(x / negatable(nothing(), make_unsigned_constant(11629079ULL)));
+        negatable n = floor(x / negatable(nothing(), make_unsigned_constant(11629079ULL)));
 
         const negatable alpha = x - (n * negatable(nothing(), make_unsigned_constant(11629079ULL)));
 
@@ -1047,7 +1098,9 @@
                          + alpha * (negatable(nothing(), make_unsigned_constant(  142422ULL))
                          + alpha * (negatable(nothing(), make_unsigned_constant(   23635ULL))))))));
 
-        return negatable(nothing(), sum.data << n);
+        negatable result(nothing(), sum.data);
+
+        return result * negatable::pow2(n);
       }
       else if(x < 0)
       {
@@ -1071,10 +1124,10 @@
         {
           negatable xx  = x;
 
-          const value_type n = static_cast<value_type>(xx / 2);
+          negatable n = floor(xx / 2);
 
           // TBD: Is argument scaling here correct, or would it be better to use a constant offset?
-          xx.data >>= n;
+          xx /= negatable::pow2(n);
 
           --xx;
 
@@ -1126,16 +1179,16 @@
 
         if(x < 0) { xx = -xx; }
 
-        value_type n = static_cast<value_type>(x * negatable(nothing(), make_unsigned_constant(10680707ULL)));
+        const negatable n = floor(xx * negatable(nothing(), make_unsigned_constant(10680707ULL)));
 
         xx = xx - (n * negatable(nothing(), make_unsigned_constant(26353589ULL)));
 
         bool x_sym = true;
         bool y_sym = true;
 
-        if((n % 2) == 0) { y_sym = false; }
-        if((n % 3) == 0) { x_sym = y_sym = false; }
-        if((n % 4) == 0) { x_sym = y_sym = false; }
+        if(((n.data / radix_split_value<value_type>()) % 2) == 0) { y_sym = false; }
+        if(((n.data / radix_split_value<value_type>()) % 3) == 0) { x_sym = y_sym = false; }
+        if(((n.data / radix_split_value<value_type>()) % 4) == 0) { x_sym = y_sym = false; }
 
         if(y_sym) { xx = negatable(nothing(), make_unsigned_constant(26353589ULL)) - xx; }
 
