@@ -6,7 +6,7 @@
 
 #include <boost/math/fixed_point/fixed_point.hpp>
 
-typedef math::fixed_point::negatable<64, -52> fixed_point_type;
+typedef math::fixed_point::negatable<32, -24> fixed_point_type;
 
 int main()
 {
@@ -23,7 +23,7 @@ int main()
   flo_b =     127.0F +     1.0F /     3.0F;
   dou_b =     127.0  +     1.0  /     3.0;
 
-  std::cout << "Testing range for math::fixed_point::negatable<> is: " << std::endl;
+  std::cout << "Testing math::fixed_point::negatable<>." << std::endl;
   std::cout << "Precision Comparison:" << std::setprecision(std::numeric_limits<fixed_point_type::floating_point_representation_type>::digits10) << std::endl;
   std::cout << "Fixed: a=" << fxp_a << "; b=" << fxp_b << std::endl;
   std::cout << "Float: a=" << flo_a << "; b=" << flo_b << std::endl;
@@ -165,4 +165,26 @@ int main()
   std::cout << "Min:     "  << (std::numeric_limits<fixed_point_type>::min)()   << std::endl;
   std::cout << "Max:     "  << (std::numeric_limits<fixed_point_type>::max)()   << std::endl;
   std::cout << "Lowest:  "  <<  std::numeric_limits<fixed_point_type>::lowest() << std::endl;
+
+/*
+  // Code for generating constant data tables for the fixed-point transcendental functions.
+  boost::multiprecision::cpp_bin_float_50 x[10U] =
+  {
+    ldexp(boost::multiprecision::cpp_bin_float_50(1), 32) * boost::multiprecision::cpp_bin_float_50("1.00000000000515925731828752728105832394326074759"),
+    ldexp(boost::multiprecision::cpp_bin_float_50(1), 32) * boost::multiprecision::cpp_bin_float_50("0.5000000000003647060153107453719207310291227330"),
+    ldexp(boost::multiprecision::cpp_bin_float_50(1), 32) * boost::multiprecision::cpp_bin_float_50("0.166666666434759711603778614874440161495758885"),
+    ldexp(boost::multiprecision::cpp_bin_float_50(1), 32) * boost::multiprecision::cpp_bin_float_50("0.041666666651040628272664366212682912257536132"),
+    ldexp(boost::multiprecision::cpp_bin_float_50(1), 32) * boost::multiprecision::cpp_bin_float_50("0.00833333621950678340255551556071136954199155"),
+    ldexp(boost::multiprecision::cpp_bin_float_50(1), 32) * boost::multiprecision::cpp_bin_float_50("0.00138888908940646274313876573591723154996128"),
+    ldexp(boost::multiprecision::cpp_bin_float_50(1), 32) * boost::multiprecision::cpp_bin_float_50("0.00019839816465538721169514610667397674117921"),
+    ldexp(boost::multiprecision::cpp_bin_float_50(1), 32) * boost::multiprecision::cpp_bin_float_50("0.00002480052089614949432869834077541411462333"),
+    ldexp(boost::multiprecision::cpp_bin_float_50(1), 32) * boost::multiprecision::cpp_bin_float_50("2.78751408419685587068250625271257471662E-6"),
+    ldexp(boost::multiprecision::cpp_bin_float_50(1), 32) * boost::multiprecision::cpp_bin_float_50("2.7805552486571639896027547132821323427E-7"),
+  };
+
+  for(unsigned i = 0U; i < 10U; ++i)
+  {
+    std::cout << std::setprecision(20) << floor(x[i]) << "ULL" << std::endl;
+  }
+*/
 }

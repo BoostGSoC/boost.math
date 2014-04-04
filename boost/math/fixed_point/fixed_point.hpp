@@ -216,12 +216,12 @@
 
     typedef typename math::fixed_point::detail::integer_type_helper<(-resolution < 16 ? 16 : -resolution)>::exact_signed_type floating_point_representation_exponent_type;
 
-    typedef boost::multiprecision::backends::cpp_bin_float<range,
-                                                            boost::multiprecision::backends::digit_base_2,
-                                                            void,
-                                                            int,
-                                                            -1022,
-                                                            +1033>
+    typedef boost::multiprecision::backends::cpp_bin_float<range + 2,
+                                                           boost::multiprecision::backends::digit_base_2,
+                                                           void,
+                                                           std::int_least16_t,
+                                                           -1022,
+                                                           +1033>
     floating_point_representation_backend_type;
 
     typedef boost::multiprecision::number<floating_point_representation_backend_type,
@@ -647,9 +647,13 @@
 
     static negatable pow2(negatable& p)
     {
-      // TBD: Use a simple left shift of 1 here.
+      // TBD: Can we potentially use a simple left shift of 1 here ?
       // TBD: VS2012 has trouble with some cpp_int conversions, so we use this complicated pow2 scheme here.
-      if(p < 0)
+      if(p == 0)
+      {
+        return negatable(1);
+      }
+      else if(p < 0)
       {
         negatable pm(-p);
 
@@ -660,7 +664,6 @@
         if     (p == 1) { return negatable( 2); }
         else if(p == 2) { return negatable( 4); }
         else if(p == 3) { return negatable( 8); }
-        else if(p == 4) { return negatable(16); }
 
         negatable result(((p.data & radix_split_value<value_type>()) != 0) ? negatable(2) : negatable(1));
         negatable x2    (2);
@@ -1105,6 +1108,21 @@
                          + alpha * (negatable(nothing(), make_unsigned_constant(  698971ULL))
                          + alpha * (negatable(nothing(), make_unsigned_constant(  142422ULL))
                          + alpha * (negatable(nothing(), make_unsigned_constant(   23635ULL))))))));
+
+        /*
+        Here are the numbers for 32 bits.
+        // Fit[N[Table[{x, Exp[x] - 1}, {x, -Log[2], Log[2], 1/180}], 50], {x, x^2, x^3, x^4, x^5, x^6, x^7, x^8, x^9, x^10}, x]
+        4294967296ULL
+        2147483648ULL
+        715827881ULL
+        178956970ULL
+        35791406ULL
+        5965233ULL
+        852113ULL
+        106517ULL
+        11972ULL
+        1194ULL
+        */
 
         negatable result(nothing(), sum.data);
 
