@@ -1420,7 +1420,7 @@
     public:
       static const bool                    is_specialized    = true;
       static const int                     digits            = std::numeric_limits<typename negatable_type::value_type>::digits;
-      static const int                     digits10          = std::numeric_limits<typename negatable_type::value_type>::digits;
+      static const int                     digits10          = std::numeric_limits<typename negatable_type::value_type>::digits10;
       static const int                     max_digits10      = std::numeric_limits<typename negatable_type::value_type>::max_digits10;
       static const bool                    is_signed         = true;
       static const bool                    is_integer        = false;
